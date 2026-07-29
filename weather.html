@@ -9,20 +9,20 @@
 
         .weather-container {
             position: absolute; 
-            bottom: 60px; /* Un poco más arriba del borde */
+            bottom: 60px; 
             left: 50px;   
             display: flex; 
             flex-direction: column; 
             align-items: flex-start; 
             
-            background: rgba(15, 15, 15, 0.8); /* Ligeramente más opaco para resaltar */
+            background: rgba(15, 15, 15, 0.8); 
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             
-            border-left: 8px solid #0097b2; /* Borde más grueso */
+            border-left: 8px solid #0097b2; 
             border-top: 1px solid rgba(255, 255, 255, 0.15);
             
-            padding: 15px 30px; /* Más aire interno */
+            padding: 15px 30px; 
             border-radius: 0 15px 15px 0;
             box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
             
@@ -36,7 +36,7 @@
         .row { display: flex; align-items: center; gap: 18px; }
         
         .city { 
-            font-size: 24px; /* Aumentado */
+            font-size: 24px; 
             text-transform: uppercase; 
             font-weight: 900; 
             letter-spacing: 2px;
@@ -44,7 +44,7 @@
         }
 
         .temp { 
-            font-size: 32px; /* Aumentado */
+            font-size: 32px; 
             font-weight: 900; 
             color: #0097b2; 
             background: rgba(0, 151, 178, 0.2); 
@@ -54,7 +54,7 @@
         }
 
         .desc { 
-            font-size: 14px; /* Aumentado */
+            font-size: 14px; 
             color: rgba(255, 255, 255, 0.8); 
             text-transform: uppercase; 
             margin-top: 8px;
@@ -78,18 +78,16 @@
             if (!d) return;
             const el = document.getElementById('weather');
             
-            if(d.showWeather && d.city) {
+            // Permite desplegar el widget si showWeather es verdadero y al menos hay ciudad o clima disponible
+            if(d.showWeather && (d.city || d.temp || d.weatherDesc)) {
                 el.classList.add('active');
             } else {
                 el.classList.remove('active');
             }
 
-            document.getElementById('dispCity').innerText = d.city || "---";
-            document.getElementById('dispTemp').innerText = d.temp || "--";
-            
-            if(d.weatherDesc) {
-                document.getElementById('dispDesc').innerText = d.weatherDesc;
-            }
+            document.getElementById('dispCity').innerText = d.city || "SANTA ROSA";
+            document.getElementById('dispTemp').innerText = d.temp || "--°C";
+            document.getElementById('dispDesc').innerText = d.weatherDesc || "EN VIVO";
         }
 
         window.addEventListener('message', (event) => {
