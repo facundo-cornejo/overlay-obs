@@ -41,6 +41,11 @@
             font-size: 38px; color: #0097b2; margin: 0 20px; font-weight: 900; 
             background: rgba(255,255,255,0.05); padding: 0 12px; border-radius: 6px; 
         }
+
+        /* Separador guión para estado 'A CONTINUACIÓN' */
+        .separador-vs {
+            font-size: 28px; color: #0097b2; margin: 0 15px; font-weight: 900;
+        }
         
         /* Contenedor del reloj */
         #clockWrapper { 
@@ -53,7 +58,7 @@
 
         .reloj { font-size: 28px; color: #eee; min-width: 80px; text-align: center; }
 
-        /* Estilo fundamental para ocultar elementos dinámicamente */
+        /* Estilo para ocultar elementos */
         .hidden { display: none !important; }
 
         .paused { animation: blink 1.5s infinite; }
@@ -67,6 +72,7 @@
         <div class="marcador-container">
             <div id="nra" class="nombre">LOCAL</div>
             <div id="ga" class="goles">0</div>
+            <div id="sepVs" class="separador-vs hidden">-</div>
             <div id="gb" class="goles">0</div>
             <div id="nrb" class="nombre">VISITA</div>
             <div id="clockWrapper" class="reloj-box">
@@ -83,6 +89,7 @@
             const clockWrapper = document.getElementById('clockWrapper');
             const goalA = document.getElementById('ga');
             const goalB = document.getElementById('gb');
+            const sepVs = document.getElementById('sepVs');
             
             // Visibilidad General
             if(d.showScore) wrapper.classList.add('visible');
@@ -96,25 +103,26 @@
             document.getElementById('dispPeriod').innerText = d.period || "1T";
             
             // --- 1. Lógica para ocultar el reloj ---
-            // Si el estado coincide con alguno de estos textos, el reloj desaparece.
-            const hideClockStates = ["ENTRETIEMPO", "RESULTADO FINAL", "FINALIZADO", "A CONTINUACIÓN"];
+            // Agregamos "FIN" explícitamente a la lista
+            const hideClockStates = ["ENTRETIEMPO", "FIN", "RESULTADO FINAL", "FINALIZADO", "A CONTINUACIÓN"];
             if (hideClockStates.includes(d.period)) {
                 clockWrapper.classList.add('hidden');
             } else {
                 clockWrapper.classList.remove('hidden');
             }
 
-            // --- 2. Lógica para ocultar los goles ---
-            // Si dice "A CONTINUACIÓN", le agregamos la clase "hidden" a las cajas de goles.
+            // --- 2. Lógica para estado 'A CONTINUACIÓN' ---
             if (d.period === "A CONTINUACIÓN") {
                 goalA.classList.add('hidden');
                 goalB.classList.add('hidden');
+                sepVs.classList.remove('hidden'); // Muestra el guion "-"
             } else {
                 goalA.classList.remove('hidden');
                 goalB.classList.remove('hidden');
+                sepVs.classList.add('hidden');    // Oculta el guion "-"
             }
 
-            // Actualización de tiempo (solo procesa números si el reloj está visible)
+            // Actualización de tiempo
             if (!clockWrapper.classList.contains('hidden')) {
                 const m = Math.floor(d.seconds/60).toString().padStart(2,'0');
                 const s = (d.seconds%60).toString().padStart(2,'0');
