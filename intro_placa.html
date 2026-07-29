@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Placa de Inicio de Partido</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@700;900&display=swap');
+        body { background: transparent; overflow: hidden; font-family: 'Roboto', sans-serif; color: white; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
+
+        .placa-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            background: rgba(15, 15, 15, 0.9);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            padding: 50px 80px;
+            border-radius: 20px;
+            border: 2px solid #0097b2;
+            box-shadow: 0 15px 60px rgba(0,0,0,0.7);
+            max-width: 1000px;
+        }
+
+        .placa-container.active {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .matchup {
+            display: flex;
+            align-items: center;
+            gap: 60px; /* Espacio entre los equipos */
+            margin-bottom: 30px;
+        }
+
+        .team-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            min-width: 250px;
+        }
+
+        .team-logo {
+            width: 150px; /* Tamaño más grande para los logos */
+            height: 150px;
+            object-fit: contain;
+            margin-bottom: 15px;
+            filter: drop-shadow(0 0 15px rgba(255,255,255,0.2));
+        }
+
+        .team-name-placa {
+            font-size: 38px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: white;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.8);
+            white-space: nowrap;
+        }
+
+        .vs-text {
+            font-size: 60px;
+            font-weight: 900;
+            color: #0097b2;
+            margin: 0 20px;
+            text-shadow: 2px 2px 10px rgba(0,151,178,0.7);
+        }
+
+        .match-info {
+            font-size: 22px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: rgba(255,255,255,0.8);
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px dashed rgba(255,255,255,0.2);
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="placaContainer" class="placa-container">
+        <div class="matchup">
+            <div class="team-box">
+                <img id="logoPlacaA" src="https://via.placeholder.com/150/0097b2/FFFFFF?text=LOCAL" alt="Logo Local" class="team-logo">
+                <div id="namePlacaA" class="team-name-placa">EQUIPO LOCAL</div>
+            </div>
+            <div class="vs-text">VS</div>
+            <div class="team-box">
+                <img id="logoPlacaB" src="https://via.placeholder.com/150/0097b2/FFFFFF?text=VISITA" alt="Logo Visita" class="team-logo">
+                <div id="namePlacaB" class="team-name-placa">EQUIPO VISITA</div>
+            </div>
+        </div>
+        <div id="matchInfo" class="match-info"></div>
+    </div>
+
+    <script>
+        function updateDisplay(d) {
+            if (!d) return;
+
+            const placa = document.getElementById('placaContainer');
+            const matchInfo = document.getElementById('matchInfo');
+
+            // Visibilidad de la placa de inicio
+            if (d.showIntroPlaca) {
+                placa.classList.add('active');
+            } else {
+                placa.classList.remove('active');
+            }
+
+            // Nombres de los equipos
+            document.getElementById('namePlacaA').innerText = d.nameA || "EQUIPO LOCAL";
+            document.getElementById('namePlacaB').innerText = d.nameB || "EQUIPO VISITA";
+
+            // Logos (usa placeholder si la URL está vacía)
+            document.getElementById('logoPlacaA').src = d.logoA || "https://via.placeholder.com/150/0097b2/FFFFFF?text=LOCAL";
+            document.getElementById('logoPlacaB').src = d.logoB || "https://via.placeholder.com/150/0097b2/FFFFFF?text=VISITA";
+
+            // Información extra del zócalo (la reutilizamos aquí si existe)
+            if (d.extraLT && d.extraLT.trim() !== "") {
+                matchInfo.innerText = d.extraLT;
+                matchInfo.style.display = 'block';
+            } else {
+                matchInfo.style.display = 'none';
+            }
+        }
+
+        // Escucha de mensajes desde el Master.html
+        window.addEventListener('message', (event) => {
+            updateDisplay(event.data);
+        });
+
+        // Respaldo por localStorage para la carga inicial o si se refresca la fuente
+        window.addEventListener('storage', () => {
+            const data = JSON.parse(localStorage.getItem('score_master'));
+            if (data) updateDisplay(data);
+        });
+
+        // Carga inicial al refrescar la fuente del navegador
+        window.onload = () => {
+            const data = JSON.parse(localStorage.getItem('score_master'));
+            if (data) updateDisplay(data);
+        };
+    </script>
+</body>
+</html>

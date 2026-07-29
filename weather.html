@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@500;900&display=swap');
+        
+        body { background: transparent; overflow: hidden; font-family: 'Roboto', sans-serif; color: white; margin: 0; }
+
+        .weather-container {
+            position: absolute; 
+            bottom: 60px; /* Un poco más arriba del borde */
+            left: 50px;   
+            display: flex; 
+            flex-direction: column; 
+            align-items: flex-start; 
+            
+            background: rgba(15, 15, 15, 0.8); /* Ligeramente más opaco para resaltar */
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            
+            border-left: 8px solid #0097b2; /* Borde más grueso */
+            border-top: 1px solid rgba(255, 255, 255, 0.15);
+            
+            padding: 15px 30px; /* Más aire interno */
+            border-radius: 0 15px 15px 0;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+            
+            transition: 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform: translateX(-160%); 
+            opacity: 0;
+        }
+
+        .weather-container.active { transform: translateX(0); opacity: 1; }
+
+        .row { display: flex; align-items: center; gap: 18px; }
+        
+        .city { 
+            font-size: 24px; /* Aumentado */
+            text-transform: uppercase; 
+            font-weight: 900; 
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 5px rgba(0,0,0,0.6);
+        }
+
+        .temp { 
+            font-size: 32px; /* Aumentado */
+            font-weight: 900; 
+            color: #0097b2; 
+            background: rgba(0, 151, 178, 0.2); 
+            padding: 5px 15px; 
+            border-radius: 10px;
+            border: 2px solid rgba(0, 151, 178, 0.4);
+        }
+
+        .desc { 
+            font-size: 14px; /* Aumentado */
+            color: rgba(255, 255, 255, 0.8); 
+            text-transform: uppercase; 
+            margin-top: 8px;
+            letter-spacing: 2px;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="weather" class="weather-container">
+        <div class="row">
+            <div id="dispTemp" class="temp">--°C</div>
+            <div id="dispCity" class="city">CIUDAD</div>
+        </div>
+        <div id="dispDesc" class="desc">DATOS EN TIEMPO REAL</div>
+    </div>
+
+    <script>
+        function updateDisplay(d) {
+            if (!d) return;
+            const el = document.getElementById('weather');
+            
+            if(d.showWeather && d.city) {
+                el.classList.add('active');
+            } else {
+                el.classList.remove('active');
+            }
+
+            document.getElementById('dispCity').innerText = d.city || "---";
+            document.getElementById('dispTemp').innerText = d.temp || "--";
+            
+            if(d.weatherDesc) {
+                document.getElementById('dispDesc').innerText = d.weatherDesc;
+            }
+        }
+
+        window.addEventListener('message', (event) => {
+            updateDisplay(event.data);
+        });
+
+        window.addEventListener('storage', () => {
+            const data = JSON.parse(localStorage.getItem('score_master'));
+            if (data) updateDisplay(data);
+        });
+
+        window.onload = () => {
+            const data = JSON.parse(localStorage.getItem('score_master'));
+            if (data) updateDisplay(data);
+        };
+    </script>
+</body>
+</html>

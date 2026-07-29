@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;900&display=swap');
+        
+        body { 
+            background: transparent; 
+            margin: 0; 
+            overflow: hidden; 
+            font-family: 'Roboto', sans-serif; 
+            color: white; 
+        }
+
+        .intro-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: radial-gradient(circle, rgba(26,26,26,0.95) 0%, rgba(10,10,10,1) 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 1s ease-in-out;
+            transform: translateY(-100%); /* Escondido arriba */
+            opacity: 0;
+            z-index: 9999;
+        }
+
+        .intro-overlay.active {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .match-info {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .extra-text {
+            color: #0097b2;
+            font-size: 24px;
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            margin-bottom: 10px;
+        }
+
+        .vs-container {
+            display: flex;
+            align-items: center;
+            gap: 60px;
+        }
+
+        .team {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 350px;
+        }
+
+        .logo-frame {
+            width: 200px;
+            height: 200px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 4px solid #0097b2;
+            box-shadow: 0 0 30px rgba(0, 151, 178, 0.3);
+            margin-bottom: 20px;
+        }
+
+        .logo-frame img {
+            max-width: 140px;
+            max-height: 140px;
+            object-fit: contain;
+        }
+
+        .team-name {
+            font-size: 42px;
+            font-weight: 900;
+            text-transform: uppercase;
+            text-align: center;
+        }
+
+        .vs-circle {
+            background: #0097b2;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            font-weight: 900;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="intro" class="intro-overlay">
+        <div class="match-info">
+            <div id="dispExtra" class="extra-text">ESTADIO MUNICIPAL</div>
+            <div style="font-size: 18px; letter-spacing: 2px;">#FUTBOLPAMPEANO</div>
+        </div>
+
+        <div class="vs-container">
+            <div class="team">
+                <div class="logo-frame">
+                    <img id="imgA" src="" alt="">
+                </div>
+                <div id="nameA" class="team-name">LOCAL</div>
+            </div>
+
+            <div class="vs-circle">VS</div>
+
+            <div class="team">
+                <div class="logo-frame">
+                    <img id="imgB" src="" alt="">
+                </div>
+                <div id="nameB" class="team-name">VISITA</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const bc = new BroadcastChannel('sistema_obs');
+
+        function update(d) {
+            if(!d) return;
+            const el = document.getElementById('intro');
+            
+            // Visibilidad
+            if(d.showIntro) {
+                el.classList.add('active');
+            } else {
+                el.classList.remove('active');
+            }
+
+            // Datos
+            document.getElementById('nameA').innerText = d.nameA || "LOCAL";
+            document.getElementById('nameB').innerText = d.nameB || "VISITA";
+            document.getElementById('imgA').src = d.logoA || "";
+            document.getElementById('imgB').src = d.logoB || "";
+            document.getElementById('dispExtra').innerText = d.extraLT || "";
+        }
+
+        bc.onmessage = (event) => update(event.data);
+        
+        window.onload = () => {
+            const saved = JSON.parse(localStorage.getItem('score_master'));
+            if(saved) update(saved);
+        }
+    </script>
+</body>
+</html>

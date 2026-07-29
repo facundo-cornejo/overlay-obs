@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@700;900&display=swap');
+        body { background: transparent; overflow: hidden; font-family: 'Roboto', sans-serif; color: white; margin: 0; }
+
+        .banner-container {
+            position: absolute; bottom: 50px; left: 50%;
+            transform: translateX(-50%) translateY(250px); /* Un poco más abajo para asegurar que se esconda */
+            display: flex; align-items: center;
+            background: rgba(15, 15, 15, 0.75);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            padding: 15px 45px;
+            border-radius: 12px;
+            border-bottom: 5px solid #0097b2;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+            transition: 0.8s cubic-bezier(0.165, 0.84, 0.44, 1);
+            min-width: 450px; justify-content: center;
+            opacity: 0;
+        }
+
+        .banner-container.active { 
+            transform: translateX(-50%) translateY(0); 
+            opacity: 1;
+        }
+
+        .text {
+            font-size: 26px; text-transform: uppercase;
+            letter-spacing: 2px; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            white-space: nowrap;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="banner" class="banner-container">
+        <div id="dispText" class="text">CARGANDO ANUNCIO...</div>
+    </div>
+
+    <script>
+        function updateDisplay(d) {
+            if (!d) return;
+            const el = document.getElementById('banner');
+            
+            // Lógica de visibilidad (Checkea el interruptor y que haya texto)
+            if(d.showGeneric && d.genericText && d.genericText.trim() !== "") {
+                el.classList.add('active');
+            } else {
+                el.classList.remove('active');
+            }
+
+            document.getElementById('dispText').innerText = d.genericText || "";
+        }
+
+        // 1. Escuchar el mensaje enviado por el Master.html
+        window.addEventListener('message', (event) => {
+            updateDisplay(event.data);
+        });
+
+        // 2. Respaldo por Storage
+        window.addEventListener('storage', () => {
+            const rawData = localStorage.getItem('score_master');
+            if (rawData) updateDisplay(JSON.parse(rawData));
+        });
+
+        // Carga inicial
+        window.onload = () => {
+            const rawData = localStorage.getItem('score_master');
+            if (rawData) updateDisplay(JSON.parse(rawData));
+        };
+    </script>
+</body>
+</html>

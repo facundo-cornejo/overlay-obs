@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@900&display=swap');
+        body { background: transparent; overflow: hidden; font-family: 'Roboto', sans-serif; color: white; margin: 0; }
+
+        .main-wrapper { 
+            position: absolute; top: 40px; left: 40px; 
+            display: flex; flex-direction: column;
+            transition: 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
+            transform: translateX(-120%); 
+            opacity: 0;
+        }
+
+        .main-wrapper.visible {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .period-tag {
+            background: #0097b2; color: white; font-size: 14px; font-weight: bold;
+            padding: 4px 15px; width: fit-content; border-radius: 10px 10px 0 0;
+            text-transform: uppercase; letter-spacing: 1px;
+        }
+
+        .marcador-container {
+            display: flex; align-items: center;
+            background: rgba(15, 15, 15, 0.95);
+            border-left: 6px solid #0097b2;
+            padding: 8px 25px;
+            box-shadow: 8px 8px 25px rgba(0,0,0,0.7);
+            white-space: nowrap;
+            border-radius: 0 12px 12px 12px; 
+        }
+
+        .nombre { font-size: 24px; text-transform: uppercase; letter-spacing: 1px; }
+        .goles { 
+            font-size: 38px; color: #0097b2; margin: 0 20px; font-weight: 900; 
+            background: rgba(255,255,255,0.05); padding: 0 12px; border-radius: 6px; 
+        }
+        
+        /* Contenedor del reloj con ID para controlarlo */
+        #clockWrapper { 
+            display: flex; 
+            align-items: baseline; 
+            border-left: 2px solid #444; 
+            padding-left: 20px; 
+            margin-left: 10px; 
+        }
+
+        .reloj { font-size: 28px; color: #eee; min-width: 80px; text-align: center; }
+
+        /* Estilo para ocultar el reloj */
+        .hidden { display: none !important; }
+
+        .paused { animation: blink 1.5s infinite; }
+        @keyframes blink { 50% { opacity: 0.3; } }
+    </style>
+</head>
+<body>
+
+    <div id="wrapper" class="main-wrapper">
+        <div id="dispPeriod" class="period-tag">1T</div>
+        <div class="marcador-container">
+            <div id="nra" class="nombre">LOCAL</div>
+            <div id="ga" class="goles">0</div>
+            <div id="gb" class="goles">0</div>
+            <div id="nrb" class="nombre">VISITA</div>
+            <div id="clockWrapper" class="reloj-box">
+                <div id="clock" class="reloj">00:00</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateDisplay(d) {
+            if(!d) return;
+
+            const wrapper = document.getElementById('wrapper');
+            const clockWrapper = document.getElementById('clockWrapper');
+            
+            // Visibilidad General
+            if(d.showScore) wrapper.classList.add('visible');
+            else wrapper.classList.remove('visible');
+
+            // Textos y Goles
+            document.getElementById('nra').innerText = d.nameA || "LOCAL";
+            document.getElementById('nrb').innerText = d.nameB || "VISITA";
+            document.getElementById('ga').innerText = d.scoreA || 0;
+            document.getElementById('gb').innerText = d.scoreB || 0;
+            document.getElementById('dispPeriod').innerText = d.period || "1T";
+            
+            // Lógica de visibilidad del reloj según el periodo
+            const hideClockStates = ["ENTRETIEMPO", "RESULTADO FINAL", "FINALIZADO", "A CONTINUACIÓN"];
+            if (hideClockStates.includes(d.period)) {
+                clockWrapper.classList.add('hidden');
+            } else {
+                clockWrapper.classList.remove('hidden');
+            }
+
+            // Actualización de tiempo (solo si es visible para ahorrar recursos)
+            if (!clockWrapper.classList.contains('hidden')) {
+                const m = Math.floor(d.seconds/60).toString().padStart(2,'0');
+                const s = (d.seconds%60).toString().padStart(2,'0');
+                document.getElementById('clock').innerText = `${m}:${s}`;
+                document.getElementById('clock').className = d.running ? 'reloj' : 'reloj paused';
+            }
+        }
+
+        window.addEventListener('message', (event) => updateDisplay(event.data));
+        window.addEventListener('storage', () => {
+            const data = JSON.parse(localStorage.getItem('score_master'));
+            updateDisplay(data);
+        });
+
+        const initialData = JSON.parse(localStorage.getItem('score_master'));
+        if(initialData) updateDisplay(initialData);
+    </script>
+</body>
+</html>
