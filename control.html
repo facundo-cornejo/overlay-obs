@@ -84,15 +84,20 @@
 
         <button onclick="resetTimer()" class="btn-reset">RESET INTELIGENTE (TIEMPOS)</button>
     </div>
-
+    
     <div class="card full-width">
         <h3>Sede y Clima</h3>
-        <div style="display: flex; gap: 5px;">
-            <input type="text" id="weatherText" placeholder="Ej: Santa Rosa 22°C Soleado" style="flex: 2;" onkeyup="sync()" onchange="sync()">
-            <button id="weatherBtn" onclick="toggleWeather()" class="btn-toggle" style="flex: 1;">MOSTRAR CLIMA</button>
+        <div style="display: flex; gap: 5px; margin-bottom: 5px;">
+            <input type="text" id="city" placeholder="Ciudad (ej: Santa Rosa)" style="flex: 2;" onkeyup="sync()" onchange="sync()">
+            <input type="text" id="temp" placeholder="Temp (ej: 22°C)" style="flex: 1;" onkeyup="sync()" onchange="sync()">
         </div>
+        <input type="text" id="weatherDesc" placeholder="Estado (ej: Soleado / Viento Sur)" onkeyup="sync()" onchange="sync()">
+        
+        <button id="weatherBtn" onclick="toggleWeather()" class="btn-toggle" style="width: 100%; margin-top: 8px;">
+            MOSTRAR / OCULTAR CLIMA
+        </button>
     </div>
-
+    
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyDDAfPTP5TtNe5kn6ME2JybFqBDq1ATslY",
