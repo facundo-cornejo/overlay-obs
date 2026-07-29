@@ -30,16 +30,16 @@
 </head>
 <body>
 
-    <!-- Todos los módulos visuales originales -->
+    <!-- Capas / Módulos de la transmisión -->
     <iframe src="overlay.html" id="frame_score"></iframe>
     <iframe src="lower_third.html" id="frame_lt"></iframe>
     <iframe src="weather.html" id="frame_weather"></iframe>
     <iframe src="generic.html" id="frame_generic"></iframe>
     <iframe src="intro_placa.html" id="frame_intro_placa"></iframe>
-    <iframe src="intro.html" id="frame_intro"></iframe>
+    <iframe src="intro.html" id="frame_intro_vs"></iframe>
 
     <script>
-        // CONFIGURACIÓN DE TU PROYECTO FIREBASE
+    // CONFIGURACIÓN DE TU PROYECTO FIREBASE
         const firebaseConfig = {
             apiKey: "AIzaSyDDAfPTP5TtNe5kn6ME2JybFqBDq1ATslY",
             authDomain: "marcador-obs-6c60b.firebaseapp.com",
@@ -50,21 +50,19 @@
             appId: "1:411268546632:web:67778b081df1d35e1e587d",
             measurementId: "G-257GQPG41H"
         };
-
-        // Inicializar Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database().ref('score_data');
-
-        // Canal de transmisión local de respaldo
-        const bc = new BroadcastChannel('sistema_obs');
 
         function broadcastToIframes(data) {
             if (!data) return;
             
-            // 1. Guardar copia en localStorage por si un iframe reinicia
+            // Garantizamos compatibilidad enviando ambas banderas de visibilidad
+            data.showIntroPlaca = data.showIntro || data.showIntroPlaca || false;
+
+            // Guardar copia local de respaldo
             localStorage.setItem('score_master', JSON.stringify(data));
 
-            // 2. Transmitir el paquete de datos a todos los iframes cargados
+            // Notificar a cada iframe mediante postMessage
             const iframes = document.querySelectorAll('iframe');
             iframes.forEach(frame => {
                 if (frame.contentWindow) {
@@ -73,18 +71,15 @@
             });
         }
 
-        // Escuchar datos en tiempo real desde la nube (Firebase)
+        // Escuchar datos de la nube
         db.on('value', (snapshot) => {
-            const data = snapshot.val();
-            broadcastToIframes(data);
+            broadcastToIframes(snapshot.val());
         });
 
-        // Respaldar también por si envías órdenes desde la misma PC mediante BroadcastChannel
-        bc.onmessage = (event) => {
-            broadcastToIframes(event.data);
-        };
-
-        console.log("Master System: Puente de Firebase & BroadcastChannel activo...");
+        // Respaldo por BroadcastChannel
+        const bc = new BroadcastChannel('sistema_obs');
+        bc.onmessage = (event) => broadcastToIframes(event.data);
     </script>
 </body>
 </html>
+
