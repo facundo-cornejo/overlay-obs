@@ -104,26 +104,26 @@
     <script>
         function updateDisplay(d) {
             if (!d) return;
-
+        
             const placa = document.getElementById('placaContainer');
             const matchInfo = document.getElementById('matchInfo');
-
-            // Visibilidad de la placa de inicio
-            if (d.showIntroPlaca) {
+        
+            // Acepta la orden ya sea como showIntroPlaca o showIntro
+            if (d.showIntroPlaca || d.showIntro) {
                 placa.classList.add('active');
             } else {
                 placa.classList.remove('active');
             }
-
+        
             // Nombres de los equipos
             document.getElementById('namePlacaA').innerText = d.nameA || "EQUIPO LOCAL";
             document.getElementById('namePlacaB').innerText = d.nameB || "EQUIPO VISITA";
-
-            // Logos (usa placeholder si la URL está vacía)
+        
+            // Logos
             document.getElementById('logoPlacaA').src = d.logoA || "https://via.placeholder.com/150/0097b2/FFFFFF?text=LOCAL";
             document.getElementById('logoPlacaB').src = d.logoB || "https://via.placeholder.com/150/0097b2/FFFFFF?text=VISITA";
-
-            // Información extra del zócalo (la reutilizamos aquí si existe)
+        
+            // Información extra
             if (d.extraLT && d.extraLT.trim() !== "") {
                 matchInfo.innerText = d.extraLT;
                 matchInfo.style.display = 'block';
