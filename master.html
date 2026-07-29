@@ -2,113 +2,44 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Master Overlay OBS</title>
+    <title>Master Overlay System</title>
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@700;900&display=swap');
-
-        body {
-            margin: 0; padding: 0; width: 1920px; height: 1080px;
-            overflow: hidden; background: transparent;
-            font-family: 'Roboto', sans-serif; color: white;
+        body { 
+            margin: 0; 
+            padding: 0; 
+            width: 1920px; 
+            height: 1080px; 
+            background: transparent; 
+            overflow: hidden; 
         }
 
-        .layer {
+        iframe {
             position: absolute;
-            transition: all 0.4s ease-in-out;
-            opacity: 0; transform: translateY(20px);
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: transparent;
             pointer-events: none;
         }
-
-        .layer.visible { opacity: 1; transform: translateY(0); }
-
-        /* 1. MARCADOR PRINCIPAL */
-        #scoreLayer { top: 40px; left: 40px; display: flex; flex-direction: column; }
-        .period-tag {
-            background: #0097b2; color: white; font-size: 14px; font-weight: bold;
-            padding: 4px 15px; width: fit-content; border-radius: 8px 8px 0 0;
-            text-transform: uppercase; letter-spacing: 1px;
-        }
-        .marcador-container {
-            display: flex; align-items: center; background: rgba(15, 15, 15, 0.95);
-            border-left: 6px solid #0097b2; padding: 8px 20px;
-            box-shadow: 8px 8px 25px rgba(0,0,0,0.7); border-radius: 0 10px 10px 10px;
-        }
-        .team-logo { width: 35px; height: 35px; object-fit: contain; margin: 0 8px; }
-        .nombre { font-size: 22px; text-transform: uppercase; letter-spacing: 1px; font-weight: 900; }
-        .goles {
-            font-size: 36px; color: #0097b2; margin: 0 15px; font-weight: 900;
-            background: rgba(255,255,255,0.05); padding: 0 12px; border-radius: 6px;
-            min-width: 35px; text-align: center;
-        }
-        #clockWrapper { display: flex; align-items: baseline; border-left: 2px solid #444; padding-left: 15px; margin-left: 5px; }
-        .reloj { font-size: 26px; color: #eee; min-width: 75px; text-align: center; }
-        .hidden { display: none !important; }
-        .paused { animation: blink 1.5s infinite; }
-        @keyframes blink { 50% { opacity: 0.3; } }
-
-        /* 2. ZÓCALO INFORMATIVO (LOWER THIRD) */
-        #ltLayer { bottom: 60px; left: 40px; background: rgba(15, 15, 15, 0.95); border-left: 6px solid #e67e22; padding: 12px 25px; border-radius: 6px; box-shadow: 5px 5px 20px rgba(0,0,0,0.6); }
-        .lt-title { font-size: 20px; color: #e67e22; font-weight: 900; text-transform: uppercase; }
-        .lt-sub { font-size: 16px; color: #ddd; margin-top: 2px; }
-
-        /* 3. CLIMA Y ANUNCIO GENÉRICO */
-        #infoBoxLayer { top: 40px; right: 40px; display: flex; flex-direction: column; gap: 10px; align-items: flex-end; position: absolute; }
-        .info-card { background: rgba(15, 15, 15, 0.95); padding: 10px 20px; border-radius: 8px; border-right: 5px solid #0097b2; font-size: 16px; font-weight: bold; position: relative; }
-
-        /* 4. PLACA INICIO / ESPERA FULLSCREEN */
-        #introLayer {
-            top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(10, 10, 10, 0.95); display: flex; flex-direction: column;
-            justify-content: center; align-items: center; z-index: 999;
-        }
-        .intro-title { font-size: 60px; color: #0097b2; font-weight: 900; text-transform: uppercase; margin-bottom: 10px; text-align: center; }
-        .intro-sub { font-size: 28px; color: #aaa; text-transform: uppercase; letter-spacing: 2px; text-align: center; }
     </style>
 </head>
 <body>
 
-    <!-- Capa: Placa Inicio -->
-    <div id="introLayer" class="layer">
-        <div id="introTitle" class="intro-title">TRANSMISIÓN EN VIVO</div>
-        <div id="introSub" class="intro-sub">A CONTINUACIÓN</div>
-    </div>
-
-    <!-- Capa: Marcador Principal -->
-    <div id="scoreLayer" class="layer">
-        <div id="dispPeriod" class="period-tag">1T</div>
-        <div class="marcador-container">
-            <img id="logoA" class="team-logo hidden" src="" alt="">
-            <div id="nra" class="nombre">LOCAL</div>
-            <div id="ga" class="goles">0</div>
-            <div id="gb" class="goles">0</div>
-            <div id="nrb" class="nombre">VISITA</div>
-            <img id="logoB" class="team-logo hidden" src="" alt="">
-            <div id="clockWrapper">
-                <div id="clock" class="reloj">00:00</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Capa: Zócalo (Lower Third) -->
-    <div id="ltLayer" class="layer">
-        <div id="ltTitle" class="lt-title">EN VIVO</div>
-        <div id="ltSub" class="lt-sub"></div>
-    </div>
-
-    <!-- Capa: Clima y Anuncio Genérico -->
-    <div id="infoBoxLayer">
-        <div id="weatherCard" class="info-card layer" style="border-color: #f1c40f;">
-            <span id="weatherText"></span>
-        </div>
-        <div id="genericCard" class="info-card layer" style="border-color: #9b59b6;">
-            <span id="genericText"></span>
-        </div>
-    </div>
+    <!-- Todos los módulos visuales originales -->
+    <iframe src="overlay.html" id="frame_score"></iframe>
+    <iframe src="lower_third.html" id="frame_lt"></iframe>
+    <iframe src="weather.html" id="frame_weather"></iframe>
+    <iframe src="generic.html" id="frame_generic"></iframe>
+    <iframe src="intro_placa.html" id="frame_intro_placa"></iframe>
+    <iframe src="intro.html" id="frame_intro"></iframe>
 
     <script>
+        // CONFIGURACIÓN DE TU PROYECTO FIREBASE
         const firebaseConfig = {
             apiKey: "AIzaSyDDAfPTP5TtNe5kn6ME2JybFqBDq1ATslY",
             authDomain: "marcador-obs-6c60b.firebaseapp.com",
@@ -120,326 +51,40 @@
             measurementId: "G-257GQPG41H"
         };
 
+        // Inicializar Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database().ref('score_data');
 
-        function updateMaster(d) {
-            if(!d) return;
+        // Canal de transmisión local de respaldo
+        const bc = new BroadcastChannel('sistema_obs');
 
-            // 1. PLACA INICIO
-            const introLayer = document.getElementById('introLayer');
-            if(d.showIntro) {
-                introLayer.classList.add('visible');
-                document.getElementById('introTitle').innerText = `${d.nameA || 'LOCAL'} VS ${d.nameB || 'VISITA'}`;
-                document.getElementById('introSub').innerText = d.extraLT || "TRANSMISIÓN EN VIVO";
-            } else {
-                introLayer.classList.remove('visible');
-            }
+        function broadcastToIframes(data) {
+            if (!data) return;
+            
+            // 1. Guardar copia en localStorage por si un iframe reinicia
+            localStorage.setItem('score_master', JSON.stringify(data));
 
-            // 2. MARCADOR PRINCIPAL
-            const scoreLayer = document.getElementById('scoreLayer');
-            if(d.showScore && !d.showIntro) {
-                scoreLayer.classList.add('visible');
-            } else {
-                scoreLayer.classList.remove('visible');
-            }
-
-            document.getElementById('nra').innerText = d.nameA || "LOCAL";
-            document.getElementById('nrb').innerText = d.nameB || "VISITA";
-
-            // Logos
-            const imgA = document.getElementById('logoA');
-            const imgB = document.getElementById('logoB');
-            if(d.logoA) { imgA.src = d.logoA; imgA.classList.remove('hidden'); } else imgA.classList.add('hidden');
-            if(d.logoB) { imgB.src = d.logoB; imgB.classList.remove('hidden'); } else imgB.classList.add('hidden');
-
-            // Goles vs VS
-            if (d.period === "A CONTINUACIÓN") {
-                document.getElementById('ga').innerText = "V";
-                document.getElementById('gb').innerText = "S";
-            } else {
-                document.getElementById('ga').innerText = (d.scoreA !== undefined) ? d.scoreA : 0;
-                document.getElementById('gb').innerText = (d.scoreB !== undefined) ? d.scoreB : 0;
-            }
-
-            // Lógica de Reloj y Etiqueta
-            const clockWrapper = document.getElementById('clockWrapper');
-            const periodTag = document.getElementById('dispPeriod');
-            const p = d.period || "1T";
-            const estadosSinReloj = ["ENTRETIEMPO", "FIN", "RESULTADO FINAL", "A CONTINUACIÓN"];
-
-            if (estadosSinReloj.includes(p)) {
-                clockWrapper.classList.add('hidden');
-            } else {
-                clockWrapper.classList.remove('hidden');
-            }
-
-            periodTag.innerText = (p === "FIN") ? "RESULTADO FINAL" : p;
-
-            if (!clockWrapper.classList.contains('hidden')) {
-                const totalSec = d.seconds || 0;
-                const m = Math.floor(totalSec / 60).toString().padStart(2, '0');
-                const s = (totalSec % 60).toString().padStart(2, '0');
-                document.getElementById('clock').innerText = `${m}:${s}`;
-                document.getElementById('clock').className = d.running ? 'reloj' : 'reloj paused';
-            }
-
-            // 3. ZÓCALO LOWER THIRD
-            const ltLayer = document.getElementById('ltLayer');
-            if(d.showLT) {
-                ltLayer.classList.add('visible');
-                document.getElementById('ltTitle').innerText = `${d.nameA || 'LOCAL'} VS ${d.nameB || 'VISITA'}`;
-                document.getElementById('ltSub').innerText = d.extraLT || "";
-            } else {
-                ltLayer.classList.remove('visible');
-            }
-
-            // 4. CLIMA
-            const weatherCard = document.getElementById('weatherCard');
-            if(d.showWeather && d.weatherText) {
-                weatherCard.classList.add('visible');
-                document.getElementById('weatherText').innerText = `☀️ ${d.weatherText}`;
-            } else {
-                weatherCard.classList.remove('visible');
-            }
-
-            // 5. ANUNCIO GENÉRICO
-            const genericCard = document.getElementById('genericCard');
-            if(d.showGeneric && d.genericText) {
-                genericCard.classList.add('visible');
-                document.getElementById('genericText').innerText = `📢 ${d.genericText}`;
-            } else {
-                genericCard.classList.remove('visible');
-            }
+            // 2. Transmitir el paquete de datos a todos los iframes cargados
+            const iframes = document.querySelectorAll('iframe');
+            iframes.forEach(frame => {
+                if (frame.contentWindow) {
+                    frame.contentWindow.postMessage(data, '*');
+                }
+            });
         }
 
-        // Escuchar datos de Firebase
+        // Escuchar datos en tiempo real desde la nube (Firebase)
         db.on('value', (snapshot) => {
-            updateMaster(snapshot.val());
+            const data = snapshot.val();
+            broadcastToIframes(data);
         });
-    </script>
-</body>
-</html><!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Master Overlay OBS</title>
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@700;900&display=swap');
 
-        body {
-            margin: 0; padding: 0; width: 1920px; height: 1080px;
-            overflow: hidden; background: transparent;
-            font-family: 'Roboto', sans-serif; color: white;
-        }
-
-        .layer {
-            position: absolute;
-            transition: all 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
-            opacity: 0; transform: translateY(20px);
-        }
-
-        .layer.visible { opacity: 1; transform: translateY(0); }
-
-        /* 1. MARCADOR PRINCIPAL */
-        #scoreLayer { top: 40px; left: 40px; display: flex; flex-direction: column; }
-        .period-tag {
-            background: #0097b2; color: white; font-size: 14px; font-weight: bold;
-            padding: 4px 15px; width: fit-content; border-radius: 8px 8px 0 0;
-            text-transform: uppercase; letter-spacing: 1px;
-        }
-        .marcador-container {
-            display: flex; align-items: center; background: rgba(15, 15, 15, 0.95);
-            border-left: 6px solid #0097b2; padding: 8px 20px;
-            box-shadow: 8px 8px 25px rgba(0,0,0,0.7); border-radius: 0 10px 10px 10px;
-        }
-        .team-logo { width: 35px; height: 35px; object-fit: contain; margin: 0 8px; }
-        .nombre { font-size: 22px; text-transform: uppercase; letter-spacing: 1px; font-weight: 900; }
-        .goles {
-            font-size: 36px; color: #0097b2; margin: 0 15px; font-weight: 900;
-            background: rgba(255,255,255,0.05); padding: 0 12px; border-radius: 6px;
-            min-width: 35px; text-align: center;
-        }
-        #clockWrapper { display: flex; align-items: baseline; border-left: 2px solid #444; padding-left: 15px; margin-left: 5px; }
-        .reloj { font-size: 26px; color: #eee; min-width: 75px; text-align: center; }
-        .hidden { display: none !important; }
-        .paused { animation: blink 1.5s infinite; }
-        @keyframes blink { 50% { opacity: 0.3; } }
-
-        /* 2. ZÓCALO INFORMATIVO (LOWER THIRD) */
-        #ltLayer { bottom: 60px; left: 40px; background: rgba(15, 15, 15, 0.95); border-left: 6px solid #e67e22; padding: 12px 25px; border-radius: 6px; box-shadow: 5px 5px 20px rgba(0,0,0,0.6); }
-        .lt-title { font-size: 20px; color: #e67e22; font-weight: 900; text-transform: uppercase; }
-        .lt-sub { font-size: 16px; color: #ddd; margin-top: 2px; }
-
-        /* 3. CLIMA Y ANUNCIO GENÉRICO */
-        #infoBoxLayer { top: 40px; right: 40px; display: flex; flex-direction: column; gap: 10px; align-items: flex-end; }
-        .info-card { background: rgba(15, 15, 15, 0.95); padding: 10px 20px; border-radius: 8px; border-right: 5px solid #0097b2; font-size: 16px; font-weight: bold; }
-
-        /* 4. PLACA INICIO / ESPERA FULLSCREEN */
-        #introLayer {
-            top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(10, 10, 10, 0.95); display: flex; flex-direction: column;
-            justify-content: center; align-items: center; z-index: 999;
-        }
-        .intro-title { font-size: 60px; color: #0097b2; font-weight: 900; text-transform: uppercase; margin-bottom: 10px; }
-        .intro-sub { font-size: 28px; color: #aaa; text-transform: uppercase; letter-spacing: 2px; }
-    </style>
-</head>
-<body>
-
-    <!-- Capa: Placa Inicio -->
-    <div id="introLayer" class="layer">
-        <div id="introTitle" class="intro-title">TRANSMISIÓN EN VIVO</div>
-        <div id="introSub" class="intro-sub">A CONTINUACIÓN</div>
-    </div>
-
-    <!-- Capa: Marcador Principal -->
-    <div id="scoreLayer" class="layer">
-        <div id="dispPeriod" class="period-tag">1T</div>
-        <div class="marcador-container">
-            <img id="logoA" class="team-logo hidden" src="" alt="">
-            <div id="nra" class="nombre">LOCAL</div>
-            <div id="ga" class="goles">0</div>
-            <div id="gb" class="goles">0</div>
-            <div id="nrb" class="nombre">VISITA</div>
-            <img id="logoB" class="team-logo hidden" src="" alt="">
-            <div id="clockWrapper">
-                <div id="clock" class="reloj">00:00</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Capa: Zócalo (Lower Third) -->
-    <div id="ltLayer" class="layer">
-        <div id="ltTitle" class="lt-title">EN VIVO</div>
-        <div id="ltSub" class="lt-sub"></div>
-    </div>
-
-    <!-- Capa: Clima y Anuncio Genérico -->
-    <div id="infoBoxLayer">
-        <div id="weatherCard" class="info-card layer" style="border-color: #f1c40f;">
-            <span id="weatherText"></span>
-        </div>
-        <div id="genericCard" class="info-card layer" style="border-color: #9b59b6;">
-            <span id="genericText"></span>
-        </div>
-    </div>
-
-    <script>
-        // CONFIGURACIÓN DE FIREBASE (La misma que en control.html)
-        /*const firebaseConfig = {
-            apiKey: "TU_API_KEY",
-            authDomain: "TU_PROJECT.firebaseapp.com",
-            databaseURL: "https://TU_PROJECT-default-rtdb.firebaseio.com",
-            projectId: "TU_PROJECT",
-            storageBucket: "TU_PROJECT.appspot.com",
-            messagingSenderId: "TU_ID",
-            appId: "TU_APP_ID"
-        };*/
-        const firebaseConfig = {
-        apiKey: "AIzaSyDDAfPTP5TtNe5kn6ME2JybFqBDq1ATslY",
-        authDomain: "marcador-obs-6c60b.firebaseapp.com",
-        databaseURL: "https://marcador-obs-6c60b-default-rtdb.firebaseio.com",
-        projectId: "marcador-obs-6c60b",
-        storageBucket: "marcador-obs-6c60b.firebasestorage.app",
-        messagingSenderId: "411268546632",
-        appId: "1:411268546632:web:67778b081df1d35e1e587d",
-        measurementId: "G-257GQPG41H"
+        // Respaldar también por si envías órdenes desde la misma PC mediante BroadcastChannel
+        bc.onmessage = (event) => {
+            broadcastToIframes(event.data);
         };
 
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database().ref('score_data');
-
-        function updateMaster(d) {
-            if(!d) return;
-
-            // 1. PLACA INICIO
-            const introLayer = document.getElementById('introLayer');
-            if(d.showIntro) {
-                introLayer.classList.add('visible');
-                document.getElementById('introTitle').innerText = `${d.nameA} VS ${d.nameB}`;
-                document.getElementById('introSub').innerText = d.extraLT || "TRANSMISIÓN EN VIVO";
-            } else {
-                introLayer.classList.remove('visible');
-            }
-
-            // 2. MARCADOR
-            const scoreLayer = document.getElementById('scoreLayer');
-            if(d.showScore && !d.showIntro) scoreLayer.classList.add('visible');
-            else scoreLayer.classList.remove('visible');
-
-            document.getElementById('nra').innerText = d.nameA || "LOCAL";
-            document.getElementById('nrb').innerText = d.nameB || "VISITA";
-
-            // Logos (si existen)
-            const imgA = document.getElementById('logoA');
-            const imgB = document.getElementById('logoB');
-            if(d.logoA) { imgA.src = d.logoA; imgA.classList.remove('hidden'); } else imgA.classList.add('hidden');
-            if(d.logoB) { imgB.src = d.logoB; imgB.classList.remove('hidden'); } else imgB.classList.add('hidden');
-
-            // Goles vs VS
-            if (d.period === "A CONTINUACIÓN") {
-                document.getElementById('ga').innerText = "V";
-                document.getElementById('gb').innerText = "S";
-            } else {
-                document.getElementById('ga').innerText = d.scoreA || 0;
-                document.getElementById('gb').innerText = d.scoreB || 0;
-            }
-
-            // Ocultar Reloj y Formato de Etiqueta
-            const clockWrapper = document.getElementById('clockWrapper');
-            const periodTag = document.getElementById('dispPeriod');
-            const p = d.period || "1T";
-            const estadosSinReloj = ["ENTRETIEMPO", "FIN", "RESULTADO FINAL", "A CONTINUACIÓN"];
-
-            if (estadosSinReloj.includes(p)) clockWrapper.classList.add('hidden');
-            else clockWrapper.classList.remove('hidden');
-
-            periodTag.innerText = (p === "FIN" || p === "RESULTADO FINAL") ? "RESULTADO FINAL" : p;
-
-            if (!clockWrapper.classList.contains('hidden')) {
-                const m = Math.floor((d.seconds||0)/60).toString().padStart(2,'0');
-                const s = ((d.seconds||0)%60).toString().padStart(2,'0');
-                document.getElementById('clock').innerText = `${m}:${s}`;
-                document.getElementById('clock').className = d.running ? 'reloj' : 'reloj paused';
-            }
-
-            // 3. ZÓCALO LOWER THIRD
-            const ltLayer = document.getElementById('ltLayer');
-            if(d.showLT && d.extraLT) {
-                ltLayer.classList.add('visible');
-                document.getElementById('ltTitle').innerText = `${d.nameA} VS ${d.nameB}`;
-                document.getElementById('ltSub').innerText = d.extraLT;
-            } else {
-                ltLayer.classList.remove('visible');
-            }
-
-            // 4. CLIMA
-            const weatherCard = document.getElementById('weatherCard');
-            if(d.showWeather && d.city) {
-                weatherCard.classList.add('visible');
-                document.getElementById('weatherText').innerText = `☀️ ${d.city}: ${d.temp}`;
-            } else {
-                weatherCard.classList.remove('visible');
-            }
-
-            // 5. ANUNCIO GENÉRICO
-            const genericCard = document.getElementById('genericCard');
-            if(d.showGeneric && d.genericText) {
-                genericCard.classList.add('visible');
-                document.getElementById('genericText').innerText = `📢 ${d.genericText}`;
-            } else {
-                genericCard.classList.remove('visible');
-            }
-        }
-
-        // Escuchar datos de Firebase
-        db.on('value', (snapshot) => {
-            updateMaster(snapshot.val());
-        });
+        console.log("Master System: Puente de Firebase & BroadcastChannel activo...");
     </script>
 </body>
 </html>
