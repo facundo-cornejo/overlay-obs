@@ -118,7 +118,7 @@
             nameB: "VISITA", scoreB: 0, logoB: "",
             seconds: 0, running: false, period: "1T",
             showLT: false, showScore: true, showIntro: false,
-            weatherText: "", showWeather: false,
+            city: "", temp: "", weatherDesc: "", showWeather: false,
             genericText: "", showGeneric: false, extraLT: ""
         };
 
@@ -130,9 +130,13 @@
             data.period = document.getElementById('period').value;
             data.extraLT = document.getElementById('extraLT').value || "";
             data.genericText = document.getElementById('genericText').value || "";
-            data.weatherText = document.getElementById('weatherText').value || "";
+            
+            // Corrección en los valores del clima
+            data.city = document.getElementById('city').value || "";
+            data.temp = document.getElementById('temp').value || "";
+            data.weatherDesc = document.getElementById('weatherDesc').value || "";
 
-            // Actualizar interfaz del panel
+            // Actualizar interfaz gráfica del panel
             document.getElementById('monitorA').innerText = data.scoreA;
             document.getElementById('monitorB').innerText = data.scoreB;
 
@@ -143,7 +147,7 @@
             document.getElementById('genericBtn').className = data.showGeneric ? 'btn-toggle on' : 'btn-toggle';
             document.getElementById('tBtn').innerText = data.running ? 'PAUSAR TIEMPO' : 'CONTINUAR TIEMPO';
 
-            // Guardar en la nube
+            // Sincronizar en Firebase
             db.set(data);
         }
 
@@ -178,9 +182,14 @@
         function changeScore(t, v) { data[t] = Math.max(0, data[t]+v); sync(); }
         function toggleTimer() { data.running = !data.running; sync(); }
 
-        setInterval(() => { if(data.running){ data.seconds++; sync(); } }, 1000);
+        setInterval(() => { 
+            if(data.running){ 
+                data.seconds++; 
+                sync(); 
+            } 
+        }, 1000);
 
-        // Al iniciar, leer estado actual de Firebase
+        // Al cargar la página, recuperar estado desde Firebase
         db.once('value', (snapshot) => {
             const val = snapshot.val();
             if(val) {
@@ -192,7 +201,9 @@
                 document.getElementById('period').value = data.period || "1T";
                 document.getElementById('extraLT').value = data.extraLT || "";
                 document.getElementById('genericText').value = data.genericText || "";
-                document.getElementById('weatherText').value = data.weatherText || "";
+                document.getElementById('city').value = data.city || "";
+                document.getElementById('temp').value = data.temp || "";
+                document.getElementById('weatherDesc').value = data.weatherDesc || "";
                 sync();
             }
         });
