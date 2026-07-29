@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <title>Panel de Control Maestro</title>
-    <!-- Firebase SDK -->
+    <!-- Firebase SDK (App, Database & Auth) -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #1a1a1a; color: white; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 15px; }
         .card { background: #2d2d2d; padding: 12px; border-radius: 10px; border: 1px solid #444; }
@@ -24,12 +25,42 @@
         .time-setter input { width: 45px; text-align: center; margin: 0; padding: 5px; }
         .btn-set { background: #f1c40f; color: #000; font-size: 10px; flex-grow: 1; padding: 6px; }
         .btn-search { background: #0097b2; color: white; padding: 8px; border: none; border-radius: 4px; font-size: 11px; white-space: nowrap; }
+
+        /* Pantalla de Autenticación */
+        #authOverlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: #111; z-index: 99999; display: flex;
+            justify-content: center; align-items: center;
+        }
+        .login-box {
+            background: #222; padding: 30px; border-radius: 12px;
+            border: 1px solid #0097b2; width: 300px; text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        }
+        .login-box input { width: 90%; margin-bottom: 12px; }
+        .login-box button { width: 100%; background: #0097b2; color: white; margin-top: 10px; }
+        #authError { color: #e74c3c; font-size: 12px; margin-top: 10px; display: none; }
     </style>
 </head>
 <body>
 
+    <!-- Modal de Inicio de Sesión Obligatorio -->
+    <div id="authOverlay">
+        <div class="login-box">
+            <h3 style="font-size: 16px; margin-bottom: 15px;">Acceso Autorizado</h3>
+            <input type="email" id="authEmail" placeholder="Correo Electrónico">
+            <input type="password" id="authPass" placeholder="Contraseña">
+            <button onclick="login()">INGRESAR</button>
+            <div id="authError">Credenciales incorrectas</div>
+        </div>
+    </div>
+
+    <div class="card full-width" style="display: flex; justify-content: space-between; align-items: center;">
+        <h3 style="margin: 0;">Visibilidad de Pantalla</h3>
+        <button onclick="logout()" style="background: #e74c3c; color: white; font-size: 10px; padding: 5px 10px;">CERRAR SESIÓN</button>
+    </div>
+
     <div class="card full-width" style="text-align: center;">
-        <h3>Visibilidad de Pantalla</h3>
         <div style="display: flex; gap: 8px; justify-content: center;">
             <button id="introBtn" onclick="toggleIntro()" class="btn-toggle">PLACA INICIO</button>
             <button id="scoreBtn" onclick="toggleScore()" class="btn-toggle on">MARCADOR</button>
@@ -116,6 +147,7 @@
 
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database().ref('score_data');
+        const auth = firebase.auth();
 
         let data = {
             nameA: "LOCAL", scoreA: 0, logoA: "",
@@ -126,7 +158,35 @@
             genericText: "", showGeneric: false, extraLT: ""
         };
 
-        // Mapeo de códigos meteorológicos WMO a Español
+        // Escuchador de estado de autenticación
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                document.getElementById('authOverlay').style.display = 'none';
+                loadFirebaseData();
+            } else {
+                document.getElementById('authOverlay').style.display = 'flex';
+            }
+        });
+
+        function login() {
+            const email = document.getElementById('authEmail').value;
+            const pass = document.getElementById('authPass').value;
+            const errDiv = document.getElementById('authError');
+
+            auth.signInWithEmailAndPassword(email, pass)
+                .then(() => {
+                    errDiv.style.display = 'none';
+                })
+                .catch((error) => {
+                    errDiv.innerText = "Error: " + error.message;
+                    errDiv.style.display = 'block';
+                });
+        }
+
+        function logout() {
+            auth.signOut();
+        }
+
         const weatherCodeMap = {
             0: "Despejado", 1: "Mayormente despejado", 2: "Parcialmente nublado", 3: "Nublado",
             45: "Niebla", 48: "Niebla con escarcha", 51: "Llovizna ligera", 53: "Llovizna moderada",
@@ -144,7 +204,6 @@
             }
 
             try {
-                // 1. Obtener coordenadas de la ciudad
                 const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cityName)}&count=1&language=es&format=json`);
                 const geoData = await geoRes.json();
 
@@ -154,8 +213,6 @@
                 }
 
                 const { latitude, longitude, name } = geoData.results[0];
-
-                // 2. Consultar clima en vivo
                 const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`);
                 const weatherData = await weatherRes.json();
 
@@ -177,6 +234,8 @@
         }
 
         function sync() {
+            if (!auth.currentUser) return; // Protección adicional
+
             data.nameA = document.getElementById('nameA').value || "LOCAL";
             data.nameB = document.getElementById('nameB').value || "VISITA";
             data.logoA = document.getElementById('logoA').value || "";
@@ -188,7 +247,6 @@
             data.temp = document.getElementById('temp').value || "";
             data.weatherDesc = document.getElementById('weatherDesc').value || "";
 
-            // Actualización visual del panel
             document.getElementById('monitorA').innerText = data.scoreA;
             document.getElementById('monitorB').innerText = data.scoreB;
 
@@ -199,7 +257,6 @@
             document.getElementById('genericBtn').className = data.showGeneric ? 'btn-toggle on' : 'btn-toggle';
             document.getElementById('tBtn').innerText = data.running ? 'PAUSAR TIEMPO' : 'CONTINUAR TIEMPO';
 
-            // Firebase
             db.set(data);
         }
 
@@ -236,23 +293,25 @@
 
         setInterval(() => { if(data.running){ data.seconds++; sync(); } }, 1000);
 
-        db.once('value', (snapshot) => {
-            const val = snapshot.val();
-            if(val) {
-                data = val;
-                document.getElementById('nameA').value = data.nameA || "";
-                document.getElementById('nameB').value = data.nameB || "";
-                document.getElementById('logoA').value = data.logoA || "";
-                document.getElementById('logoB').value = data.logoB || "";
-                document.getElementById('period').value = data.period || "1T";
-                document.getElementById('extraLT').value = data.extraLT || "";
-                document.getElementById('genericText').value = data.genericText || "";
-                document.getElementById('city').value = data.city || "";
-                document.getElementById('temp').value = data.temp || "";
-                document.getElementById('weatherDesc').value = data.weatherDesc || "";
-                sync();
-            }
-        });
+        function loadFirebaseData() {
+            db.once('value', (snapshot) => {
+                const val = snapshot.val();
+                if(val) {
+                    data = val;
+                    document.getElementById('nameA').value = data.nameA || "";
+                    document.getElementById('nameB').value = data.nameB || "";
+                    document.getElementById('logoA').value = data.logoA || "";
+                    document.getElementById('logoB').value = data.logoB || "";
+                    document.getElementById('period').value = data.period || "1T";
+                    document.getElementById('extraLT').value = data.extraLT || "";
+                    document.getElementById('genericText').value = data.genericText || "";
+                    document.getElementById('city').value = data.city || "";
+                    document.getElementById('temp').value = data.temp || "";
+                    document.getElementById('weatherDesc').value = data.weatherDesc || "";
+                    sync();
+                }
+            });
+        }
     </script>
 </body>
 </html>
