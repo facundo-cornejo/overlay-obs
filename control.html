@@ -23,6 +23,7 @@
         .time-setter { display: flex; gap: 5px; align-items: center; margin-top: 8px; }
         .time-setter input { width: 45px; text-align: center; margin: 0; padding: 5px; }
         .btn-set { background: #f1c40f; color: #000; font-size: 10px; flex-grow: 1; padding: 6px; }
+        .btn-search { background: #0097b2; color: white; padding: 8px; border: none; border-radius: 4px; font-size: 11px; white-space: nowrap; }
     </style>
 </head>
 <body>
@@ -86,12 +87,15 @@
     </div>
     
     <div class="card full-width">
-        <h3>Sede y Clima</h3>
-        <div style="display: flex; gap: 5px; margin-bottom: 5px;">
-            <input type="text" id="city" placeholder="Ciudad (ej: Santa Rosa)" style="flex: 2;" onkeyup="sync()" onchange="sync()">
-            <input type="text" id="temp" placeholder="Temp (ej: 22°C)" style="flex: 1;" onkeyup="sync()" onchange="sync()">
+        <h3>Sede y Clima Autodetectado</h3>
+        <div style="display: flex; gap: 5px; margin-bottom: 5px; align-items: center;">
+            <input type="text" id="city" placeholder="Ciudad (ej: Santa Rosa)" style="flex: 2; margin: 0;">
+            <button onclick="fetchWeather()" class="btn-search">BUSCAR CLIMA</button>
         </div>
-        <input type="text" id="weatherDesc" placeholder="Estado (ej: Soleado / Viento Sur)" onkeyup="sync()" onchange="sync()">
+        <div style="display: flex; gap: 5px;">
+            <input type="text" id="temp" placeholder="Temp (ej: 22°C)" style="flex: 1;" onkeyup="sync()" onchange="sync()">
+            <input type="text" id="weatherDesc" placeholder="Estado (ej: Soleado)" style="flex: 2;" onkeyup="sync()" onchange="sync()">
+        </div>
         
         <button id="weatherBtn" onclick="toggleWeather()" class="btn-toggle" style="width: 100%; margin-top: 8px;">
             MOSTRAR / OCULTAR CLIMA
@@ -122,6 +126,56 @@
             genericText: "", showGeneric: false, extraLT: ""
         };
 
+        // Mapeo de códigos meteorológicos WMO a Español
+        const weatherCodeMap = {
+            0: "Despejado", 1: "Mayormente despejado", 2: "Parcialmente nublado", 3: "Nublado",
+            45: "Niebla", 48: "Niebla con escarcha", 51: "Llovizna ligera", 53: "Llovizna moderada",
+            55: "Llovizna intensa", 61: "Lluvia ligera", 63: "Lluvia moderada", 65: "Lluvia fuerte",
+            71: "Nieve ligera", 73: "Nieve moderada", 75: "Nieve fuerte", 80: "Chubascos ligeros",
+            81: "Chubascos moderados", 82: "Chubascos intensos", 95: "Tormenta eléctrica",
+            96: "Tormenta con granizo", 99: "Tormenta fuerte con granizo"
+        };
+
+        async function fetchWeather() {
+            const cityName = document.getElementById('city').value.trim();
+            if (!cityName) {
+                alert("Por favor escribe el nombre de una ciudad.");
+                return;
+            }
+
+            try {
+                // 1. Obtener coordenadas de la ciudad
+                const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cityName)}&count=1&language=es&format=json`);
+                const geoData = await geoRes.json();
+
+                if (!geoData.results || geoData.results.length === 0) {
+                    alert("No se encontró la ciudad ingresada.");
+                    return;
+                }
+
+                const { latitude, longitude, name } = geoData.results[0];
+
+                // 2. Consultar clima en vivo
+                const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`);
+                const weatherData = await weatherRes.json();
+
+                if (weatherData.current_weather) {
+                    const temp = Math.round(weatherData.current_weather.temperature);
+                    const code = weatherData.current_weather.weathercode;
+                    const desc = weatherCodeMap[code] || "Tiempo estable";
+
+                    document.getElementById('city').value = name.toUpperCase();
+                    document.getElementById('temp').value = `${temp}°C`;
+                    document.getElementById('weatherDesc').value = desc.toUpperCase();
+
+                    sync();
+                }
+            } catch (err) {
+                console.error("Error consultando el clima:", err);
+                alert("No se pudieron obtener los datos automáticos del clima.");
+            }
+        }
+
         function sync() {
             data.nameA = document.getElementById('nameA').value || "LOCAL";
             data.nameB = document.getElementById('nameB').value || "VISITA";
@@ -130,13 +184,11 @@
             data.period = document.getElementById('period').value;
             data.extraLT = document.getElementById('extraLT').value || "";
             data.genericText = document.getElementById('genericText').value || "";
-            
-            // Corrección en los valores del clima
             data.city = document.getElementById('city').value || "";
             data.temp = document.getElementById('temp').value || "";
             data.weatherDesc = document.getElementById('weatherDesc').value || "";
 
-            // Actualizar interfaz gráfica del panel
+            // Actualización visual del panel
             document.getElementById('monitorA').innerText = data.scoreA;
             document.getElementById('monitorB').innerText = data.scoreB;
 
@@ -147,7 +199,7 @@
             document.getElementById('genericBtn').className = data.showGeneric ? 'btn-toggle on' : 'btn-toggle';
             document.getElementById('tBtn').innerText = data.running ? 'PAUSAR TIEMPO' : 'CONTINUAR TIEMPO';
 
-            // Sincronizar en Firebase
+            // Firebase
             db.set(data);
         }
 
@@ -182,14 +234,8 @@
         function changeScore(t, v) { data[t] = Math.max(0, data[t]+v); sync(); }
         function toggleTimer() { data.running = !data.running; sync(); }
 
-        setInterval(() => { 
-            if(data.running){ 
-                data.seconds++; 
-                sync(); 
-            } 
-        }, 1000);
+        setInterval(() => { if(data.running){ data.seconds++; sync(); } }, 1000);
 
-        // Al cargar la página, recuperar estado desde Firebase
         db.once('value', (snapshot) => {
             const val = snapshot.val();
             if(val) {
