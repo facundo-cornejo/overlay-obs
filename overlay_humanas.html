@@ -15,23 +15,27 @@
         }
 
         body { 
-            margin: 0; 
-            padding: 0;
+            margin: 0; padding: 0;
             background: transparent; 
             overflow: hidden; 
             font-family: 'Montserrat', sans-serif; 
+        }
+
+        /* PANEL DE DEBUG PARA VER SI LLEGAN DATOS */
+        #debug-panel {
+            position: absolute; top: 10px; left: 10px;
+            background: rgba(0,0,0,0.85); color: #00ff00;
+            padding: 10px; font-family: monospace; font-size: 12px;
+            z-index: 9999; border: 1px solid #00ff00; border-radius: 5px;
+            max-width: 400px; word-break: break-all;
         }
 
         #container { width: 1920px; height: 1080px; position: relative; }
 
         /* Zócalo Institucional */
         #zocalo {
-            position: absolute; 
-            bottom: 80px; 
-            left: 80px;
-            display: none; 
-            transition: all 0.3s ease-in-out;
-            animation: slideIn 0.5s forwards;
+            position: absolute; bottom: 80px; left: 80px;
+            display: none; transition: all 0.3s ease-in-out;
             z-index: 10;
         }
 
@@ -45,102 +49,32 @@
             min-width: 300px;
         }
 
-        #t { 
-            margin: 0; 
-            font-size: 42px; 
-            text-transform: uppercase; 
-            color: var(--color-texto);
-            font-weight: 700;
-            line-height: 1.1;
-        }
-
-        #st { 
-            margin: 8px 0 0 0; 
-            font-size: 24px; 
-            text-transform: uppercase; 
-            font-weight: 400; 
-            opacity: 0.95; 
-            color: var(--color-texto); 
-        }
+        #t { margin: 0; font-size: 42px; text-transform: uppercase; color: var(--color-texto); font-weight: 700; line-height: 1.1; }
+        #st { margin: 8px 0 0 0; font-size: 24px; text-transform: uppercase; font-weight: 400; opacity: 0.95; color: var(--color-texto); }
 
         /* Cabecera Derecha */
-        #header-right { 
-            position: absolute; 
-            top: 50px; 
-            right: 80px; 
-            display: flex; 
-            align-items: center; 
-            gap: 20px; 
-            z-index: 20;
-        }
-        
+        #header-right { position: absolute; top: 50px; right: 80px; display: flex; align-items: center; gap: 20px; z-index: 20; }
         #badge-vivo { 
-            background: #ff0000; 
-            color: white; 
-            padding: 8px 22px; 
-            font-weight: bold; 
-            font-size: 22px; 
-            display: none;
-            box-shadow: 0 0 15px rgba(255,0,0,0.5);
-            border-radius: 4px;
-            animation: pulse 2s infinite linear;
+            background: #ff0000; color: white; padding: 8px 22px; font-weight: bold; font-size: 22px; 
+            display: none; box-shadow: 0 0 15px rgba(255,0,0,0.5); border-radius: 4px;
         }
-
-        #logo { 
-            height: 85px; 
-            display: none; 
-            filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.4)); 
-            object-fit: contain;
-        }
+        #logo { height: 85px; display: none; object-fit: contain; }
 
         /* Pantalla de Espera */
         #pantalla-espera {
-            position: absolute; 
-            top: 0; 
-            left: 0;
-            width: 1920px; 
-            height: 1080px;
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            display: none; 
-            justify-content: center; 
-            align-items: center;
-            z-index: 100;
+            position: absolute; top: 0; left: 0; width: 1920px; height: 1080px;
+            background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(15px);
+            display: none; justify-content: center; align-items: center; z-index: 100;
         }
-
-        .espera-box {
-            text-align: center; 
-            background: var(--principal);
-            padding: 50px 90px; 
-            border-bottom: 8px solid var(--cyan);
-            box-shadow: 0 25px 60px rgba(0,0,0,0.6);
-            animation: fadeIn 0.4s ease;
-            max-width: 1200px;
-        }
-
-        #txt-espera { 
-            font-size: 55px; 
-            color: var(--color-texto); 
-            margin: 0; 
-            text-transform: uppercase; 
-            letter-spacing: 2px;
-            font-weight: 700;
-        }
-
-        .espera-linea { 
-            height: 5px; 
-            background: var(--lavanda); 
-            width: 60%; 
-            margin: 25px auto 0; 
-        }
-
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
-        @keyframes slideIn { from { transform: translateX(-40px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        .espera-box { text-align: center; background: var(--principal); padding: 50px 90px; border-bottom: 8px solid var(--cyan); }
+        #txt-espera { font-size: 55px; color: var(--color-texto); margin: 0; text-transform: uppercase; }
     </style>
 </head>
 <body>
+
+    <!-- Panel temporal de estado para saber si recibe datos -->
+    <div id="debug-panel">Cargando conexión con Firebase...</div>
+
     <div id="container">
         <div id="header-right">
             <div id="badge-vivo">VIVO</div>
@@ -157,7 +91,6 @@
         <div id="pantalla-espera">
             <div class="espera-box">
                 <h2 id="txt-espera">EL EVENTO COMENZARÁ EN BREVE</h2>
-                <div class="espera-linea"></div>
             </div>
         </div>
     </div>
@@ -176,180 +109,55 @@
 
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database().ref('score_data');
+        const debug = document.getElementById('debug-panel');
 
         db.on('value', (snapshot) => {
-            const data = snapshot.val() || {};
+            const data = snapshot.val();
+            
+            if (!data) {
+                debug.innerHTML = "⚠️ Conectado a Firebase pero 'score_data' está vacío.";
+                return;
+            }
 
-            // Restablecer estilos visuales asegurando valores por defecto
-            const bg = data.h_colorMain || '#26406C';
-            const colorText = data.h_colorText || '#ffffff';
-            const fontChoice = (data.h_font || "Montserrat").replace(/'/g, "");
+            // Mostrar estado en el panel de depuración
+            debug.innerHTML = `<strong>🟢 Datos Recibidos:</strong><br>
+                Zócalo Vis: ${data.h_zocaloVis} | Título: "${data.h_titulo || ''}"<br>
+                Vivo Vis: ${data.h_vivoVis} | Texto Vivo: "${data.h_vivoTxt || ''}"<br>
+                Espera Vis: ${data.h_esperaVis}`;
 
-            document.documentElement.style.setProperty('--principal', bg);
-            document.documentElement.style.setProperty('--color-texto', colorText);
-            document.body.style.fontFamily = `${fontChoice}, sans-serif`;
+            // Aplicar variables CSS
+            if (data.h_colorMain) document.documentElement.style.setProperty('--principal', data.h_colorMain);
+            if (data.h_colorText) document.documentElement.style.setProperty('--color-texto', data.h_colorText);
 
-            // Textos del Zócalo
-            const titulo = data.h_titulo || '';
-            const subtitulo = data.h_subtitulo || '';
-            document.getElementById('t').innerText = titulo;
-            document.getElementById('st').innerText = subtitulo;
-            document.getElementById('st').style.display = subtitulo ? 'block' : 'none';
-
-            // Visibilidad Zócalo
+            // Zócalo
             const zocalo = document.getElementById('zocalo');
-            zocalo.style.display = (data.h_zocaloVis && titulo) ? 'block' : 'none';
+            document.getElementById('t').innerText = data.h_titulo || '';
+            document.getElementById('st').innerText = data.h_subtitulo || '';
+            document.getElementById('st').style.display = data.h_subtitulo ? 'block' : 'none';
+            zocalo.style.display = data.h_zocaloVis ? 'block' : 'none';
 
-            // Indicador VIVO
-            const badgeVivo = document.getElementById('badge-vivo');
-            badgeVivo.innerText = data.h_vivoTxt || 'VIVO';
-            badgeVivo.style.display = data.h_vivoVis ? 'block' : 'none';
+            // Indicador Vivo
+            const badge = document.getElementById('badge-vivo');
+            badge.innerText = data.h_vivoTxt || 'VIVO';
+            badge.style.display = data.h_vivoVis ? 'block' : 'none';
 
             // Logo
             const logo = document.getElementById('logo');
-            if (data.h_logoUrl) {
+            if(data.h_logoUrl) {
                 logo.src = data.h_logoUrl;
                 logo.style.display = data.h_logoVis ? 'block' : 'none';
             } else {
                 logo.style.display = 'none';
             }
 
-            // Pantalla de Espera
+            // Espera
             const espera = document.getElementById('pantalla-espera');
-            const txtEspera = document.getElementById('txt-espera');
+            document.getElementById('txt-espera').innerText = data.h_esperaTxt || 'EL EVENTO COMENZARÁ EN BREVE';
             espera.style.display = data.h_esperaVis ? 'flex' : 'none';
-            txtEspera.innerText = data.h_esperaTxt || 'EL EVENTO COMENZARÁ EN BREVE';
-        });
-    </script>
-</body>
-</html><!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Roboto:wght@400;700&family=Bebas+Neue&display=swap" rel="stylesheet">
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <style>
-        :root {
-            --principal: #26406C;
-            --color-texto: #ffffff;
-            --cyan: #15A6B9;
-            --lavanda: #757ABA;
-            --font-family: 'Montserrat', sans-serif;
-        }
 
-        body { margin: 0; background: transparent; overflow: hidden; font-family: var(--font-family); }
-        #container { width: 1920px; height: 1080px; position: relative; }
-
-        /* Zócalo Institucional */
-        #zocalo {
-            position: absolute; bottom: 80px; left: 80px;
-            display: none; transition: 0.5s ease-in-out;
-            animation: slideIn 0.5s forwards;
-        }
-        .content {
-            background: var(--principal); color: var(--color-texto);
-            padding: 15px 40px; border-left: 10px solid var(--cyan); 
-            border-bottom: 5px solid var(--lavanda);
-            box-shadow: 10px 10px 30px rgba(0,0,0,0.4);
-        }
-        #t { margin: 0; font-size: 42px; text-transform: uppercase; color: var(--color-texto); }
-        #st { margin: 5px 0 0; font-size: 24px; text-transform: uppercase; font-weight: 300; opacity: 0.9; color: var(--color-texto); }
-
-        /* Cabecera Derecha */
-        #header-right { position: absolute; top: 50px; right: 80px; display: flex; align-items: center; gap: 20px; }
-        
-        #badge-vivo { 
-            background: #ff0000; color: white; padding: 8px 20px; 
-            font-weight: bold; font-size: 22px; display: none;
-            box-shadow: 0 0 15px rgba(255,0,0,0.4);
-            animation: pulse 2s infinite linear;
-        }
-        #logo { height: 80px; display: none; filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.3)); }
-
-        /* Pantalla de Espera */
-        #pantalla-espera {
-            position: absolute; top: 0; left: 0;
-            width: 1920px; height: 1080px;
-            background: rgba(38, 64, 108, 0.4);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            display: none; justify-content: center; align-items: center;
-            z-index: 100;
-        }
-        .espera-box {
-            text-align: center; background: var(--principal);
-            padding: 40px 80px; border-bottom: 8px solid var(--cyan);
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-            animation: fadeIn 0.5s ease;
-        }
-        #txt-espera { font-size: 60px; color: white; margin: 0; text-transform: uppercase; letter-spacing: 3px; }
-        .espera-linea { height: 4px; background: var(--lavanda); width: 50%; margin: 20px auto 0; }
-
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
-        @keyframes slideIn { from { transform: translateX(-50px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
-    </style>
-</head>
-<body>
-    <div id="container">
-        <div id="header-right">
-            <div id="badge-vivo">VIVO</div>
-            <img id="logo" src="">
-        </div>
-        <div id="zocalo">
-            <div class="content">
-                <h1 id="t"></h1>
-                <p id="st"></p>
-            </div>
-        </div>
-        <div id="pantalla-espera">
-            <div class="espera-box">
-                <h2 id="txt-espera">EL EVENTO COMENZARÁ EN BREVE</h2>
-                <div class="espera-linea"></div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyDDAfPTP5TtNe5kn6ME2JybFqBDq1ATslY",
-            authDomain: "marcador-obs-6c60b.firebaseapp.com",
-            databaseURL: "https://marcador-obs-6c60b-default-rtdb.firebaseio.com",
-            projectId: "marcador-obs-6c60b",
-            storageBucket: "marcador-obs-6c60b.firebasestorage.app",
-            messagingSenderId: "411268546632",
-            appId: "1:411268546632:web:67778b081df1d35e1e587d",
-            measurementId: "G-257GQPG41H"
-        };
-
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database().ref('score_data');
-
-        db.on('value', (snapshot) => {
-            const data = snapshot.val();
-            if(!data) return;
-
-            document.getElementById('t').innerText = data.h_titulo || '';
-            document.getElementById('st').innerText = data.h_subtitulo || '';
-            document.getElementById('st').style.display = data.h_subtitulo ? 'block' : 'none';
-
-            document.documentElement.style.setProperty('--principal', data.h_colorMain || '#26406C');
-            document.documentElement.style.setProperty('--color-texto', data.h_colorText || '#ffffff');
-            document.documentElement.style.setProperty('--font-family', data.h_font || "'Montserrat', sans-serif");
-
-            document.getElementById('zocalo').style.display = data.h_zocaloVis ? 'block' : 'none';
-            document.getElementById('badge-vivo').style.display = data.h_vivoVis ? 'block' : 'none';
-            document.getElementById('badge-vivo').innerText = data.h_vivoTxt || 'VIVO';
-
-            const logo = document.getElementById('logo');
-            if (data.h_logoUrl) logo.src = data.h_logoUrl;
-            logo.style.display = (data.h_logoVis && data.h_logoUrl) ? 'block' : 'none';
-
-            const espera = document.getElementById('pantalla-espera');
-            espera.style.display = data.h_esperaVis ? 'flex' : 'none';
-            if(data.h_esperaTxt) document.getElementById('txt-espera').innerText = data.h_esperaTxt;
+        }, (error) => {
+            debug.innerHTML = "❌ Error de lectura en Firebase: " + error.message;
+            debug.style.color = "#ff4444";
         });
     </script>
 </body>
