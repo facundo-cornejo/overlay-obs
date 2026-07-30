@@ -108,7 +108,6 @@
             </div>
         </div>
 
-        <!-- RESTAURADO: Información Extra y Anuncio Genérico -->
         <div class="card full-width">
             <h3>Información Extra y Anuncio Genérico</h3>
             <input type="text" id="extraLT" placeholder="Zócalo Extra (Estadio, Torneo, etc.)" onkeyup="sync()" onchange="sync()">
@@ -220,6 +219,8 @@
         const db = firebase.database().ref('score_data');
         const auth = firebase.auth();
 
+        let isUpdatingUI = false;
+
         let data = {
             nameA: "LOCAL", scoreA: 0, logoA: "", nameB: "VISITA", scoreB: 0, logoB: "",
             seconds: 0, running: false, period: "1T", showLT: false, showScore: true, showIntro: false,
@@ -244,7 +245,7 @@
         auth.onAuthStateChanged((user) => {
             if (user) {
                 document.getElementById('authOverlay').style.display = 'none';
-                loadFirebaseData();
+                listenFirebaseData();
             } else {
                 document.getElementById('authOverlay').style.display = 'flex';
             }
@@ -262,30 +263,36 @@
         function logout() { auth.signOut(); }
 
         function sync() {
-            if (!auth.currentUser) return;
+            if (!auth.currentUser || isUpdatingUI) return;
 
-            // Datos Deportes
-            data.nameA = document.getElementById('nameA').value || "LOCAL";
-            data.nameB = document.getElementById('nameB').value || "VISITA";
-            data.logoA = document.getElementById('logoA').value || "";
-            data.logoB = document.getElementById('logoB').value || "";
+            // Recoger valores de los Inputs asegurando que no sobreescriban con vacío si no hay cambio
+            data.nameA = document.getElementById('nameA').value;
+            data.nameB = document.getElementById('nameB').value;
+            data.logoA = document.getElementById('logoA').value;
+            data.logoB = document.getElementById('logoB').value;
             data.period = document.getElementById('period').value;
-            data.extraLT = document.getElementById('extraLT').value || "";
-            data.genericText = document.getElementById('genericText').value || "";
-            data.city = document.getElementById('city').value || "";
-            data.temp = document.getElementById('temp').value || "";
-            data.weatherDesc = document.getElementById('weatherDesc').value || "";
+            data.extraLT = document.getElementById('extraLT').value;
+            data.genericText = document.getElementById('genericText').value;
+            data.city = document.getElementById('city').value;
+            data.temp = document.getElementById('temp').value;
+            data.weatherDesc = document.getElementById('weatherDesc').value;
 
-            // Datos Humanas
-            data.h_titulo = document.getElementById('h-titulo').value || "";
-            data.h_subtitulo = document.getElementById('h-subtitulo').value || "";
-            data.h_logoUrl = document.getElementById('h-logoUrl').value || "";
-            data.h_vivoTxt = document.getElementById('h-vivoTxt').value || "VIVO";
-            data.h_colorMain = document.getElementById('h-colorMain').value || "#26406C";
-            data.h_colorText = document.getElementById('h-colorText').value || "#ffffff";
-            data.h_font = document.getElementById('h-font').value || "'Montserrat', sans-serif";
-            data.h_esperaTxt = document.getElementById('h-esperaTxt').value || "EL EVENTO COMENZARÁ EN BREVE";
+            data.h_titulo = document.getElementById('h-titulo').value;
+            data.h_subtitulo = document.getElementById('h-subtitulo').value;
+            data.h_logoUrl = document.getElementById('h-logoUrl').value;
+            data.h_vivoTxt = document.getElementById('h-vivoTxt').value;
+            data.h_colorMain = document.getElementById('h-colorMain').value;
+            data.h_colorText = document.getElementById('h-colorText').value;
+            data.h_font = document.getElementById('h-font').value;
+            data.h_esperaTxt = document.getElementById('h-esperaTxt').value;
 
+            updateButtonsUI();
+
+            // Enviar todo el objeto actualizado a Firebase
+            db.set(data);
+        }
+
+        function updateButtonsUI() {
             // UI Monitor Deportes
             document.getElementById('monitorA').innerText = data.scoreA;
             document.getElementById('monitorB').innerText = data.scoreB;
@@ -301,8 +308,6 @@
             document.getElementById('h-btnLogo').className = data.h_logoVis ? 'btn-toggle on' : 'btn-toggle';
             document.getElementById('h-btnVivo').className = data.h_vivoVis ? 'btn-toggle on' : 'btn-toggle';
             document.getElementById('h-btnEspera').className = data.h_esperaVis ? 'btn-main on-orange' : 'btn-main';
-
-            db.set(data);
         }
 
         function toggleHumanasKey(key) { data[key] = !data[key]; sync(); }
@@ -337,11 +342,14 @@
 
         setInterval(() => { if(data.running){ data.seconds++; sync(); } }, 1000);
 
-        function loadFirebaseData() {
-            db.once('value', (snapshot) => {
+        // Listener en tiempo real constante para mantener el estado siempre sincronizado
+        function listenFirebaseData() {
+            db.on('value', (snapshot) => {
                 const val = snapshot.val();
                 if(val) {
+                    isUpdatingUI = true;
                     data = Object.assign(data, val);
+
                     document.getElementById('nameA').value = data.nameA || "";
                     document.getElementById('nameB').value = data.nameB || "";
                     document.getElementById('logoA').value = data.logoA || "";
@@ -361,7 +369,9 @@
                     document.getElementById('h-colorText').value = data.h_colorText || "#ffffff";
                     document.getElementById('h-font').value = data.h_font || "'Montserrat', sans-serif";
                     document.getElementById('h-esperaTxt').value = data.h_esperaTxt || "";
-                    sync();
+                    
+                    updateButtonsUI();
+                    isUpdatingUI = false;
                 }
             });
         }
