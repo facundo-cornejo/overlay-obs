@@ -2,14 +2,14 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Master Overlay Completo e Integrado</title>
+    <title>Master Overlay Integrado</title>
     <style>
         * { 
             margin: 0; 
             padding: 0; 
             box-sizing: border-box; 
         }
-        body { 
+        html, body { 
             width: 1920px; 
             height: 1080px; 
             overflow: hidden; 
@@ -27,44 +27,33 @@
             background: transparent;
         }
 
-        /* --- ORDEN DE CAPAS (Z-INDEX) --- */
-        /* 1. Zócalo adicional / Lower Third genérico */
+        /* --- ORDEN DE CAPAS / JERARQUÍA VISUAL (Z-INDEX) --- */
         #layer-lower-third { z-index: 10; }
-
-        /* 2. Marcador Deportivo Base */
-        #layer-overlay { z-index: 20; }
-
-        /* 3. Módulo Institucional / Humanas (Zócalos, Logo, Vivo) */
-        #layer-humanas { z-index: 30; }
-
-        /* 4. Módulo de Clima */
-        #layer-weather { z-index: 40; }
-
-        /* 5. Anuncio Genérico */
-        #layer-generic { z-index: 50; }
-
-        /* 6. Placa de Inicio / Intro (Pantalla completa superior) */
-        #layer-intro { z-index: 60; }
+        #layer-overlay     { z-index: 20; }
+        #layer-humanas     { z-index: 30; }
+        #layer-weather     { z-index: 40; }
+        #layer-generic     { z-index: 50; }
+        #layer-intro       { z-index: 60; }
     </style>
 </head>
 <body>
 
-    <!-- Capa 1: Lower Third / Zócalo Deportivo -->
+    <!-- 1. Zócalo Deportivo Extra -->
     <iframe id="layer-lower-third" src="lower_third.html"></iframe>
 
-    <!-- Capa 2: Marcador Deportivo (Score, Tiempo, Equipos) -->
+    <!-- 2. Marcador Deportivo Base (Local, Visita, Reloj) -->
     <iframe id="layer-overlay" src="overlay.html"></iframe>
 
-    <!-- Capa 3: Overlay Institucional Humanas -->
+    <!-- 3. Módulo Institucional Humanas (Zócalo, Logo, Vivo, Espera) -->
     <iframe id="layer-humanas" src="overlay_humanas.html"></iframe>
 
-    <!-- Capa 4: Clima -->
+    <!-- 4. Clima -->
     <iframe id="layer-weather" src="weather.html"></iframe>
 
-    <!-- Capa 5: Anuncio Genérico -->
+    <!-- 5. Anuncio Genérico -->
     <iframe id="layer-generic" src="generic.html"></iframe>
 
-    <!-- Capa 6: Placa de Inicio / Intro -->
+    <!-- 6. Placa de Inicio / Intro -->
     <iframe id="layer-intro" src="intro_placa.html"></iframe>
 
 </body>
