@@ -10,7 +10,6 @@
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #1a1a1a; color: white; margin: 0; padding: 15px; }
         
-        /* Navegación por Módulos */
         .nav-tabs { display: flex; gap: 10px; margin-bottom: 15px; border-bottom: 2px solid #333; padding-bottom: 10px; }
         .tab-btn { background: #2d2d2d; color: #aaa; border: 1px solid #444; padding: 10px 20px; font-weight: bold; border-radius: 6px; cursor: pointer; transition: 0.3s; }
         .tab-btn.active { background: #0097b2; color: white; border-color: #0097b2; }
@@ -35,11 +34,9 @@
         .btn-set { background: #f1c40f; color: #000; font-size: 10px; flex-grow: 1; padding: 6px; }
         .btn-search { background: #0097b2; color: white; padding: 8px; border: none; border-radius: 4px; font-size: 11px; white-space: nowrap; }
 
-        /* Estilos del Módulo Humanas */
         .color-group { display: flex; flex-direction: column; align-items: center; flex: 1; }
         input[type="color"] { height: 35px; border: none; background: none; cursor: pointer; width: 100%; }
 
-        /* Pantalla de Autenticación */
         #authOverlay {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background: #111; z-index: 99999; display: flex;
@@ -57,7 +54,7 @@
 </head>
 <body>
 
-    <!-- Modal de Inicio de Sesión Obligatorio -->
+    <!-- Modal Autenticación -->
     <div id="authOverlay">
         <div class="login-box">
             <h3 style="font-size: 16px; margin-bottom: 15px;">Acceso Autorizado</h3>
@@ -68,19 +65,19 @@
         </div>
     </div>
 
-    <!-- Barra Superior de Control -->
+    <!-- Header Panel -->
     <div class="card full-width" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
         <h3 style="margin: 0;">Panel Maestro de Transmisión</h3>
         <button onclick="logout()" style="background: #e74c3c; color: white; font-size: 10px; padding: 5px 10px;">CERRAR SESIÓN</button>
     </div>
 
-    <!-- Pestañas Modulares -->
+    <!-- Navegación Tabs -->
     <div class="nav-tabs">
         <button class="tab-btn active" onclick="switchTab('deportes')">FÚTBOL / DEPORTES</button>
         <button class="tab-btn" onclick="switchTab('humanas')">MÓDULO HUMANAS / EVENTOS</button>
     </div>
 
-    <!-- MÓDULO 1: DEPORTES -->
+    <!-- MÓDULO DEPORTES -->
     <div id="tab-deportes" class="tab-content active">
         <div class="card full-width" style="text-align: center;">
             <h3>Visibilidad Deportes</h3>
@@ -109,6 +106,14 @@
                 <button onclick="changeScore('scoreB', 1)" style="background:#2ecc71; color:white; flex: 2;">+ GOL</button>
                 <button onclick="changeScore('scoreB', -1)" style="background:#e74c3c; color:white; flex: 1;">-</button>
             </div>
+        </div>
+
+        <!-- RESTAURADO: Información Extra y Anuncio Genérico -->
+        <div class="card full-width">
+            <h3>Información Extra y Anuncio Genérico</h3>
+            <input type="text" id="extraLT" placeholder="Zócalo Extra (Estadio, Torneo, etc.)" onkeyup="sync()" onchange="sync()">
+            <input type="text" id="genericText" placeholder="Anuncio Genérico" onkeyup="sync()" onchange="sync()">
+            <button id="genericBtn" onclick="toggleGeneric()" class="btn-toggle" style="width: 100%; margin-top: 5px;">MOSTRAR / OCULTAR ANUNCIO</button>
         </div>
 
         <div class="card full-width">
@@ -150,7 +155,7 @@
         </div>
     </div>
 
-    <!-- MÓDULO 2: HUMANAS / INSTITUCIONAL -->
+    <!-- MÓDULO HUMANAS -->
     <div id="tab-humanas" class="tab-content">
         <div class="card">
             <h3>Estilo Visual Institucional</h3>
@@ -216,11 +221,9 @@
         const auth = firebase.auth();
 
         let data = {
-            // Deportes
             nameA: "LOCAL", scoreA: 0, logoA: "", nameB: "VISITA", scoreB: 0, logoB: "",
             seconds: 0, running: false, period: "1T", showLT: false, showScore: true, showIntro: false,
             city: "", temp: "", weatherDesc: "", showWeather: false, genericText: "", showGeneric: false, extraLT: "",
-            // Humanas / Institucional
             h_titulo: "", h_subtitulo: "", h_logoUrl: "", h_vivoTxt: "VIVO",
             h_zocaloVis: false, h_logoVis: false, h_vivoVis: false, h_esperaVis: false,
             h_colorMain: "#26406C", h_colorText: "#ffffff", h_font: "'Montserrat', sans-serif", h_esperaTxt: "EL EVENTO COMENZARÁ EN BREVE"
@@ -267,6 +270,8 @@
             data.logoA = document.getElementById('logoA').value || "";
             data.logoB = document.getElementById('logoB').value || "";
             data.period = document.getElementById('period').value;
+            data.extraLT = document.getElementById('extraLT').value || "";
+            data.genericText = document.getElementById('genericText').value || "";
             data.city = document.getElementById('city').value || "";
             data.temp = document.getElementById('temp').value || "";
             data.weatherDesc = document.getElementById('weatherDesc').value || "";
@@ -281,13 +286,14 @@
             data.h_font = document.getElementById('h-font').value || "'Montserrat', sans-serif";
             data.h_esperaTxt = document.getElementById('h-esperaTxt').value || "EL EVENTO COMENZARÁ EN BREVE";
 
-            // UI Monitor
+            // UI Monitor Deportes
             document.getElementById('monitorA').innerText = data.scoreA;
             document.getElementById('monitorB').innerText = data.scoreB;
             document.getElementById('introBtn').className = data.showIntro ? 'btn-toggle on-purple' : 'btn-toggle';
             document.getElementById('scoreBtn').className = data.showScore ? 'btn-toggle on' : 'btn-toggle';
             document.getElementById('ltBtn').className = data.showLT ? 'btn-toggle on-orange' : 'btn-toggle';
             document.getElementById('weatherBtn').className = data.showWeather ? 'btn-toggle on' : 'btn-toggle';
+            document.getElementById('genericBtn').className = data.showGeneric ? 'btn-toggle on' : 'btn-toggle';
             document.getElementById('tBtn').innerText = data.running ? 'PAUSAR TIEMPO' : 'CONTINUAR TIEMPO';
 
             // UI Humanas Buttons
@@ -304,6 +310,7 @@
         function toggleScore() { data.showScore = !data.showScore; sync(); }
         function toggleLT() { data.showLT = !data.showLT; sync(); }
         function toggleWeather() { data.showWeather = !data.showWeather; sync(); }
+        function toggleGeneric() { data.showGeneric = !data.showGeneric; sync(); }
         function changeScore(t, v) { data[t] = Math.max(0, data[t]+v); sync(); }
         function toggleTimer() { data.running = !data.running; sync(); }
         
@@ -340,6 +347,8 @@
                     document.getElementById('logoA').value = data.logoA || "";
                     document.getElementById('logoB').value = data.logoB || "";
                     document.getElementById('period').value = data.period || "1T";
+                    document.getElementById('extraLT').value = data.extraLT || "";
+                    document.getElementById('genericText').value = data.genericText || "";
                     document.getElementById('city').value = data.city || "";
                     document.getElementById('temp').value = data.temp || "";
                     document.getElementById('weatherDesc').value = data.weatherDesc || "";
