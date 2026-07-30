@@ -2,53 +2,70 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Master Overlay Integrado</title>
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <title>Master Overlay Completo e Integrado</title>
     <style>
-        body { margin: 0; padding: 0; overflow: hidden; background: transparent; }
-        iframe { width: 1920px; height: 1080px; border: none; position: absolute; top: 0; left: 0; pointer-events: none; }
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+        }
+        body { 
+            width: 1920px; 
+            height: 1080px; 
+            overflow: hidden; 
+            background: transparent; 
+            position: relative;
+        }
+        iframe { 
+            width: 1920px; 
+            height: 1080px; 
+            border: none; 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            pointer-events: none; 
+            background: transparent;
+        }
+
+        /* --- ORDEN DE CAPAS (Z-INDEX) --- */
+        /* 1. Zócalo adicional / Lower Third genérico */
+        #layer-lower-third { z-index: 10; }
+
+        /* 2. Marcador Deportivo Base */
+        #layer-overlay { z-index: 20; }
+
+        /* 3. Módulo Institucional / Humanas (Zócalos, Logo, Vivo) */
+        #layer-humanas { z-index: 30; }
+
+        /* 4. Módulo de Clima */
+        #layer-weather { z-index: 40; }
+
+        /* 5. Anuncio Genérico */
+        #layer-generic { z-index: 50; }
+
+        /* 6. Placa de Inicio / Intro (Pantalla completa superior) */
+        #layer-intro { z-index: 60; }
     </style>
 </head>
 <body>
 
-    <!-- Puedes cargar ambas capas o alternar dinámicamente -->
-    <iframe id="overlay-deportes" src="overlay.html"></iframe>
-    <iframe id="overlay-humanas" src="overlay_humanas.html"></iframe>
-    <iframe src="lower_third.html" id="frame_lt"></iframe>
-    <iframe src="weather.html" id="frame_weather"></iframe>
-    <iframe src="generic.html" id="frame_generic"></iframe>
-    <iframe src="intro_placa.html" id="frame_intro_placa"></iframe>
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyDDAfPTP5TtNe5kn6ME2JybFqBDq1ATslY",
-            authDomain: "marcador-obs-6c60b.firebaseapp.com",
-            databaseURL: "https://marcador-obs-6c60b-default-rtdb.firebaseio.com",
-            projectId: "marcador-obs-6c60b",
-            storageBucket: "marcador-obs-6c60b.firebasestorage.app",
-            messagingSenderId: "411268546632",
-            appId: "1:411268546632:web:67778b081df1d35e1e587d",
-            measurementId: "G-257GQPG41H"
-        };
+    <!-- Capa 1: Lower Third / Zócalo Deportivo -->
+    <iframe id="layer-lower-third" src="lower_third.html"></iframe>
 
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database().ref('score_data');
+    <!-- Capa 2: Marcador Deportivo (Score, Tiempo, Equipos) -->
+    <iframe id="layer-overlay" src="overlay.html"></iframe>
 
-        // Control de visibilidad inteligente de capas en el Máster
-        db.on('value', (snapshot) => {
-            const data = snapshot.val();
-            if(!data) return;
+    <!-- Capa 3: Overlay Institucional Humanas -->
+    <iframe id="layer-humanas" src="overlay_humanas.html"></iframe>
 
-            const depIframe = document.getElementById('overlay-deportes');
-            const humIframe = document.getElementById('overlay-humanas');
+    <!-- Capa 4: Clima -->
+    <iframe id="layer-weather" src="weather.html"></iframe>
 
-            // Determinar si hay elementos activos de Humanas
-            const humanasActivo = data.h_zocaloVis || data.h_logoVis || data.h_vivoVis || data.h_esperaVis;
+    <!-- Capa 5: Anuncio Genérico -->
+    <iframe id="layer-generic" src="generic.html"></iframe>
 
-            // Si hay elementos de Humanas activos se priorizan/muestran en la capa Máster
-            humIframe.style.display = humanasActivo ? 'block' : 'none';
-        });
-    </script>
+    <!-- Capa 6: Placa de Inicio / Intro -->
+    <iframe id="layer-intro" src="intro_placa.html"></iframe>
+
 </body>
 </html>
