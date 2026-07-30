@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <title>Master Overlay Integrado</title>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
     <style>
-        * { 
-            margin: 0; 
-            padding: 0; 
-            box-sizing: border-box; 
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         html, body { 
             width: 1920px; 
             height: 1080px; 
@@ -25,6 +25,16 @@
             left: 0; 
             pointer-events: none; 
             background: transparent;
+            transition: opacity 0.3s ease;
+        }
+
+        .hidden-layer {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .visible-layer {
+            opacity: 1;
         }
 
         /* --- ORDEN DE CAPAS / JERARQUÍA VISUAL (Z-INDEX) --- */
@@ -38,23 +48,56 @@
 </head>
 <body>
 
-    <!-- 1. Zócalo Deportivo Extra -->
-    <iframe id="layer-lower-third" src="lower_third.html"></iframe>
+    <iframe id="layer-lower-third" src="lower_third.html" class="hidden-layer"></iframe>
+    <iframe id="layer-overlay" src="overlay.html" class="hidden-layer"></iframe>
+    <iframe id="layer-humanas" src="overlay_humanas.html" class="hidden-layer"></iframe>
+    <iframe id="layer-weather" src="weather.html" class="hidden-layer"></iframe>
+    <iframe id="layer-generic" src="generic.html" class="hidden-layer"></iframe>
+    <iframe id="layer-intro" src="intro_placa.html" class="hidden-layer"></iframe>
 
-    <!-- 2. Marcador Deportivo Base (Local, Visita, Reloj) -->
-    <iframe id="layer-overlay" src="overlay.html"></iframe>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDDAfPTP5TtNe5kn6ME2JybFqBDq1ATslY",
+            authDomain: "marcador-obs-6c60b.firebaseapp.com",
+            databaseURL: "https://marcador-obs-6c60b-default-rtdb.firebaseio.com",
+            projectId: "marcador-obs-6c60b",
+            storageBucket: "marcador-obs-6c60b.firebasestorage.app",
+            messagingSenderId: "411268546632",
+            appId: "1:411268546632:web:67778b081df1d35e1e587d"
+        };
 
-    <!-- 3. Módulo Institucional Humanas (Zócalo, Logo, Vivo, Espera) -->
-    <iframe id="layer-humanas" src="overlay_humanas.html"></iframe>
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database().ref('score_data');
 
-    <!-- 4. Clima -->
-    <iframe id="layer-weather" src="weather.html"></iframe>
+        // Control maestro de capas
+        db.on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (!data) return;
 
-    <!-- 5. Anuncio Genérico -->
-    <iframe id="layer-generic" src="generic.html"></iframe>
+            // Mapeo de visibilidades
+            toggleLayer('layer-overlay', data.showScore);
+            toggleLayer('layer-lower-third', data.showLT);
+            toggleLayer('layer-weather', data.showWeather);
+            toggleLayer('layer-generic', data.showGeneric);
+            toggleLayer('layer-intro', data.showIntro);
 
-    <!-- 6. Placa de Inicio / Intro -->
-    <iframe id="layer-intro" src="intro_placa.html"></iframe>
+            // Módulo humanas (Se activa si alguna de sus sub-variables está en true)
+            const humanasActivo = data.h_zocaloVis || data.h_logoVis || data.h_vivoVis || data.h_esperaVis;
+            toggleLayer('layer-humanas', humanasActivo);
+        });
 
+        function toggleLayer(id, isVisible) {
+            const frame = document.getElementById(id);
+            if (frame) {
+                if (isVisible) {
+                    frame.classList.remove('hidden-layer');
+                    frame.classList.add('visible-layer');
+                } else {
+                    frame.classList.remove('visible-layer');
+                    frame.classList.add('hidden-layer');
+                }
+            }
+        }
+    </script>
 </body>
 </html>
