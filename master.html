@@ -3,52 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <title>Master Overlay Integrado</title>
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
-        body { margin: 0; padding: 0; overflow: hidden; background: transparent; }
-        iframe { width: 1920px; height: 1080px; border: none; position: absolute; top: 0; left: 0; pointer-events: none; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            width: 1920px; 
+            height: 1080px; 
+            overflow: hidden; 
+            background: transparent; 
+            position: relative;
+        }
+        iframe { 
+            width: 1920px; 
+            height: 1080px; 
+            border: none; 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            pointer-events: none; 
+            background: transparent;
+        }
+        /* Capa institucional por encima del marcador deportivo */
+        #overlay-deportes { z-index: 1; }
+        #overlay-humanas { z-index: 2; }
     </style>
 </head>
 <body>
 
-    <!-- Puedes cargar ambas capas o alternar dinámicamente -->
+    <!-- Capa 1: Deportes / Marcador -->
     <iframe id="overlay-deportes" src="overlay.html"></iframe>
+
+    <!-- Capa 2: Módulo Humanas / Institucional -->
     <iframe id="overlay-humanas" src="overlay_humanas.html"></iframe>
-    <iframe src="lower_third.html" id="frame_lt"></iframe>
-    <iframe src="weather.html" id="frame_weather"></iframe>
-    <iframe src="generic.html" id="frame_generic"></iframe>
-    <iframe src="intro_placa.html" id="frame_intro_placa"></iframe>
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyDDAfPTP5TtNe5kn6ME2JybFqBDq1ATslY",
-            authDomain: "marcador-obs-6c60b.firebaseapp.com",
-            databaseURL: "https://marcador-obs-6c60b-default-rtdb.firebaseio.com",
-            projectId: "marcador-obs-6c60b",
-            storageBucket: "marcador-obs-6c60b.firebasestorage.app",
-            messagingSenderId: "411268546632",
-            appId: "1:411268546632:web:67778b081df1d35e1e587d",
-            measurementId: "G-257GQPG41H"
-        };
 
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database().ref('score_data');
-
-        // Control de visibilidad inteligente de capas en el Máster
-        db.on('value', (snapshot) => {
-            const data = snapshot.val();
-            if(!data) return;
-
-            const depIframe = document.getElementById('overlay-deportes');
-            const humIframe = document.getElementById('overlay-humanas');
-
-            // Determinar si hay elementos activos de Humanas
-            const humanasActivo = data.h_zocaloVis || data.h_logoVis || data.h_vivoVis || data.h_esperaVis;
-
-            // Si hay elementos de Humanas activos se priorizan/muestran en la capa Máster
-            humIframe.style.display = humanasActivo ? 'block' : 'none';
-        });
-    </script>
 </body>
 </html>
