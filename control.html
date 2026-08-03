@@ -60,6 +60,17 @@
         <button onclick="logout()" style="background: #e74c3c; color: white; font-size: 10px; padding: 5px 10px;">CERRAR SESIÓN</button>
     </div>
 
+    <!-- NUEVO: Selector de Resolución -->
+    <div class="card full-width">
+        <h3>Resolución del Lienzo (Master)</h3>
+        <select id="resolution" onchange="sync()">
+            <option value="1080p">Full HD (1920 x 1080)</option>
+            <option value="720p">HD (1280 x 720) - Móviles / PRISM</option>
+            <option value="4k">4K (3840 x 2160)</option>
+            <option value="auto">Adaptable Automático (Auto Scale)</option>
+        </select>
+    </div>
+
     <div class="card full-width" style="text-align: center;">
         <div style="display: flex; gap: 8px; justify-content: center;">
             <button id="introBtn" onclick="toggleIntro()" class="btn-toggle">PLACA INICIO</button>
@@ -155,10 +166,10 @@
             seconds: 0, running: false, period: "1T",
             showLT: false, showScore: true, showIntro: false,
             city: "", temp: "", weatherDesc: "", showWeather: false,
-            genericText: "", showGeneric: false, extraLT: ""
+            genericText: "", showGeneric: false, extraLT: "",
+            resolution: "1080p"
         };
 
-        // Escuchador de estado de autenticación
         auth.onAuthStateChanged((user) => {
             if (user) {
                 document.getElementById('authOverlay').style.display = 'none';
@@ -174,18 +185,14 @@
             const errDiv = document.getElementById('authError');
 
             auth.signInWithEmailAndPassword(email, pass)
-                .then(() => {
-                    errDiv.style.display = 'none';
-                })
+                .then(() => { errDiv.style.display = 'none'; })
                 .catch((error) => {
                     errDiv.innerText = "Error: " + error.message;
                     errDiv.style.display = 'block';
                 });
         }
 
-        function logout() {
-            auth.signOut();
-        }
+        function logout() { auth.signOut(); }
 
         const weatherCodeMap = {
             0: "Despejado", 1: "Mayormente despejado", 2: "Parcialmente nublado", 3: "Nublado",
@@ -198,19 +205,12 @@
 
         async function fetchWeather() {
             const cityName = document.getElementById('city').value.trim();
-            if (!cityName) {
-                alert("Por favor escribe el nombre de una ciudad.");
-                return;
-            }
+            if (!cityName) { alert("Por favor escribe el nombre de una ciudad."); return; }
 
             try {
                 const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cityName)}&count=1&language=es&format=json`);
                 const geoData = await geoRes.json();
-
-                if (!geoData.results || geoData.results.length === 0) {
-                    alert("No se encontró la ciudad ingresada.");
-                    return;
-                }
+                if (!geoData.results || geoData.results.length === 0) { alert("No se encontró la ciudad ingresada."); return; }
 
                 const { latitude, longitude, name } = geoData.results[0];
                 const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`);
@@ -220,11 +220,9 @@
                     const temp = Math.round(weatherData.current_weather.temperature);
                     const code = weatherData.current_weather.weathercode;
                     const desc = weatherCodeMap[code] || "Tiempo estable";
-
                     document.getElementById('city').value = name.toUpperCase();
                     document.getElementById('temp').value = `${temp}°C`;
                     document.getElementById('weatherDesc').value = desc.toUpperCase();
-
                     sync();
                 }
             } catch (err) {
@@ -234,7 +232,7 @@
         }
 
         function sync() {
-            if (!auth.currentUser) return; // Protección adicional
+            if (!auth.currentUser) return;
 
             data.nameA = document.getElementById('nameA').value || "LOCAL";
             data.nameB = document.getElementById('nameB').value || "VISITA";
@@ -246,6 +244,7 @@
             data.city = document.getElementById('city').value || "";
             data.temp = document.getElementById('temp').value || "";
             data.weatherDesc = document.getElementById('weatherDesc').value || "";
+            data.resolution = document.getElementById('resolution').value || "1080p";
 
             document.getElementById('monitorA').innerText = data.scoreA;
             document.getElementById('monitorB').innerText = data.scoreB;
@@ -275,9 +274,7 @@
             else if (data.period === "A CONTINUACIÓN") nextPeriod = "1T";
 
             if(confirm(`¿Pasar estado a: ${nextPeriod}?`)) {
-                data.seconds = 0;
-                data.running = false;
-                data.period = nextPeriod;
+                data.seconds = 0; data.running = false; data.period = nextPeriod;
                 document.getElementById('period').value = nextPeriod;
                 sync();
             }
@@ -308,6 +305,7 @@
                     document.getElementById('city').value = data.city || "";
                     document.getElementById('temp').value = data.temp || "";
                     document.getElementById('weatherDesc').value = data.weatherDesc || "";
+                    document.getElementById('resolution').value = data.resolution || "1080p";
                     sync();
                 }
             });
